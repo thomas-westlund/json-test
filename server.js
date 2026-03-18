@@ -39,11 +39,23 @@ app.post('/api/target', (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Origin endpoint ─────────────────────────────────────────────────────────
+
+app.get('/api/origin', (req, res) => {
+  try { res.json({ data: readJSON('origin.json') }); }
+  catch (e) { res.json({ data: [], error: e.message }); }
+});
+
+app.post('/api/origin', (req, res) => {
+  try { writeJSON('origin.json', req.body.data); res.json({ ok: true }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Transformation (mapping + pipeline) ───────────────────────────────────
 
 app.get('/api/transformation', (req, res) => {
   try { res.json(readJSON('transformation.json')); }
-  catch (e) { res.json({ mappings: [], steps: [] }); }
+  catch (e) { res.json({ mappings: [], steps: [], fieldMeta: {}, originMappings: [] }); }
 });
 
 app.post('/api/transformation', (req, res) => {
@@ -51,11 +63,12 @@ app.post('/api/transformation', (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Draw.io diagram export ─────────────────────────────────────────────────
+// ── Draw.io diagram export (3-column: Origin → Source → Target) ────────────
 
 app.post('/api/export/drawio', (req, res) => {
-  const { mappings = [], sourcePaths = [], targetPaths = [] } = req.body;
-  const xml = generateDrawioXML(mappings, sourcePaths, targetPaths);
+  const { mappings = [], sourcePaths = [], targetPaths = [],
+          originData = [], originMappings = [] } = req.body;
+  const xml = generateDrawioXML(mappings, sourcePaths, targetPaths, originData, originMappings);
   res.setHeader('Content-Type', 'application/xml');
   res.setHeader('Content-Disposition', 'attachment; filename="mapping.drawio"');
   res.send(xml);
@@ -67,59 +80,71 @@ function escXml(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
-function generateDrawioXML(mappings, sourcePaths, targetPaths) {
-  const ROW_H = 26;
-  const HEADER_H = 32;
-  const COL_W = 240;
-  const GAP = 180;
-  const START_X = 60;
+function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], originMappings = []) {
+  const ROW_H   = 26;
+  const HDR_H   = 34;
+  const COL_W   = 230;
+  const GAP     = 130;
   const START_Y = 60;
 
-  // Collect all unique fields that appear in mappings, merged with known paths
+  const origX = 50;
+  const srcX  = origX + COL_W + GAP;   // 410
+  const dstX  = srcX  + COL_W + GAP;   // 770
+
+  const san  = s => 'id_' + String(s).replace(/[^a-zA-Z0-9]/g, '_');
+  const row  = (id, val, y, fill, stroke, parent) =>
+    `<mxCell id="${id}" value="${escXml(val)}" style="text;align=left;verticalAlign=middle;spacingLeft=8;fontSize=11;fontFamily=Courier New;fillColor=${fill};strokeColor=${stroke};" vertex="1" parent="${parent}"><mxGeometry y="${y}" width="${COL_W}" height="${ROW_H}" as="geometry"/></mxCell>`;
+
   const srcFields = [...new Set([...sourcePaths, ...mappings.map(m => m.src)])];
   const dstFields = [...new Set([...targetPaths, ...mappings.map(m => m.dst)])];
 
-  const srcH = HEADER_H + srcFields.length * ROW_H;
-  const dstH = HEADER_H + dstFields.length * ROW_H;
-  const dstX = START_X + COL_W + GAP;
-
-  const sanitize = (s) => 'id_' + s.replace(/[^a-zA-Z0-9]/g, '_');
+  const origH = HDR_H + Math.max(originData.length, 1) * ROW_H;
+  const srcH  = HDR_H + Math.max(srcFields.length, 1) * ROW_H;
+  const dstH  = HDR_H + Math.max(dstFields.length, 1) * ROW_H;
 
   let cells = '';
 
-  // Source swimlane
-  cells += `<mxCell id="src_box" value="Source (source.json)" style="swimlane;startSize=${HEADER_H};fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${START_X}" y="${START_Y}" width="${COL_W}" height="${srcH}" as="geometry"/></mxCell>`;
+  // ── Origin swimlane ──
+  if (originData.length > 0) {
+    cells += `<mxCell id="orig_box" value="Origin" style="swimlane;startSize=${HDR_H};fillColor=#ecebff;strokeColor=#7b68ee;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${origX}" y="${START_Y}" width="${COL_W}" height="${origH}" as="geometry"/></mxCell>`;
+    originData.forEach((r, i) => {
+      const label = [r.sourceSystem, r.table, r.field].filter(Boolean).join(' / ') || '(empty)';
+      const mapped = originMappings.some(m => m.originId === r.id);
+      cells += row(`orig_${i}`, label, HDR_H + i * ROW_H, mapped ? '#d5e8d4' : 'none', '#7b68ee', 'orig_box');
+    });
+  }
 
-  srcFields.forEach((field, i) => {
-    const isMapped = mappings.some(m => m.src === field);
-    const fill = isMapped ? '#d5e8d4' : 'none';
-    const stroke = isMapped ? '#82b366' : '#6c8ebf';
-    const id = `src_${sanitize(field)}_${i}`;
-    cells += `<mxCell id="${id}" value="${escXml(field)}" style="text;align=left;verticalAlign=middle;spacingLeft=8;fontSize=11;fontFamily=Courier New;fillColor=${fill};strokeColor=${stroke};" vertex="1" parent="src_box"><mxGeometry y="${HEADER_H + i * ROW_H}" width="${COL_W}" height="${ROW_H}" as="geometry"/></mxCell>`;
+  // ── Source swimlane ──
+  cells += `<mxCell id="src_box" value="Source (source.json)" style="swimlane;startSize=${HDR_H};fillColor=#dde8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${srcX}" y="${START_Y}" width="${COL_W}" height="${srcH}" as="geometry"/></mxCell>`;
+  srcFields.forEach((f, i) => {
+    const mapped = mappings.some(m => m.src === f) || originMappings.some(m => m.srcPath === f);
+    cells += row(`src_${san(f)}_${i}`, f, HDR_H + i * ROW_H, mapped ? '#d5e8d4' : 'none', '#6c8ebf', 'src_box');
   });
 
-  // Target swimlane
-  cells += `<mxCell id="dst_box" value="Target (target.json)" style="swimlane;startSize=${HEADER_H};fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${dstX}" y="${START_Y}" width="${COL_W}" height="${dstH}" as="geometry"/></mxCell>`;
-
-  dstFields.forEach((field, i) => {
-    const isMapped = mappings.some(m => m.dst === field);
-    const fill = isMapped ? '#d5e8d4' : 'none';
-    const stroke = isMapped ? '#82b366' : '#82b366';
-    const id = `dst_${sanitize(field)}_${i}`;
-    cells += `<mxCell id="${id}" value="${escXml(field)}" style="text;align=left;verticalAlign=middle;spacingLeft=8;fontSize=11;fontFamily=Courier New;fillColor=${fill};strokeColor=${stroke};" vertex="1" parent="dst_box"><mxGeometry y="${HEADER_H + i * ROW_H}" width="${COL_W}" height="${ROW_H}" as="geometry"/></mxCell>`;
+  // ── Target swimlane ──
+  cells += `<mxCell id="dst_box" value="Target (target.json)" style="swimlane;startSize=${HDR_H};fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${dstX}" y="${START_Y}" width="${COL_W}" height="${dstH}" as="geometry"/></mxCell>`;
+  dstFields.forEach((f, i) => {
+    const mapped = mappings.some(m => m.dst === f);
+    cells += row(`dst_${san(f)}_${i}`, f, HDR_H + i * ROW_H, mapped ? '#d5e8d4' : 'none', '#82b366', 'dst_box');
   });
 
-  // Edges for each mapping
-  mappings.forEach((mapping, i) => {
-    const srcIdx = srcFields.indexOf(mapping.src);
-    const dstIdx = dstFields.indexOf(mapping.dst);
-    if (srcIdx === -1 || dstIdx === -1) return;
-    const srcId = `src_${sanitize(mapping.src)}_${srcIdx}`;
-    const dstId = `dst_${sanitize(mapping.dst)}_${dstIdx}`;
-    cells += `<mxCell id="edge_${i}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c63ff;strokeWidth=2;" edge="1" source="${srcId}" target="${dstId}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+  // ── Origin → Source edges (dashed) ──
+  originMappings.forEach((om, i) => {
+    const origIdx = originData.findIndex(r => r.id === om.originId);
+    const srcIdx  = srcFields.indexOf(om.srcPath);
+    if (origIdx === -1 || srcIdx === -1) return;
+    cells += `<mxCell id="oe_${i}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;strokeColor=#7b68ee;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="orig_${origIdx}" target="src_${san(srcFields[srcIdx])}_${srcIdx}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
   });
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/>${cells}</root></mxGraphModel>`;
+  // ── Source → Target edges (solid) ──
+  mappings.forEach((m, i) => {
+    const si = srcFields.indexOf(m.src);
+    const di = dstFields.indexOf(m.dst);
+    if (si === -1 || di === -1) return;
+    cells += `<mxCell id="se_${i}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;strokeColor=#6c63ff;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="src_${san(m.src)}_${si}" target="dst_${san(m.dst)}_${di}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+  });
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/>${cells}</root></mxGraphModel>`;
 }
 
 // ── Existing pipeline endpoints ─────────────────────────────────────────────

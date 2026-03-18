@@ -8,19 +8,20 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:       #0f1117;
-  --surface:  #1a1d2e;
-  --surface2: #232640;
-  --border:   #2e3156;
-  --accent:   #6c63ff;
-  --green:    #00d4aa;
-  --red:      #ff6584;
-  --yellow:   #f59e0b;
-  --blue:     #3b82f6;
-  --pink:     #ec4899;
-  --text:     #e2e8f0;
-  --muted:    #8892a4;
-  --radius:   8px;
+  /* Slightly lightened dark theme */
+  --bg:       #161923;
+  --surface:  #1e2235;
+  --surface2: #272b45;
+  --border:   #363a5a;
+  --accent:   #7c74ff;
+  --green:    #10dbb4;
+  --red:      #ff7096;
+  --yellow:   #faa831;
+  --blue:     #4d9fff;
+  --pink:     #f472b6;
+  --text:     #e8edf5;
+  --muted:    #959db5;
+  --radius:   9px;
   --font:     'Segoe UI', system-ui, sans-serif;
   --mono:     'Cascadia Code', 'Fira Code', Consolas, monospace;
 }
@@ -30,41 +31,41 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); heig
 /* ── Header ── */
 header {
   background: var(--surface); border-bottom: 1px solid var(--border);
-  padding: 0 16px; display: flex; align-items: center; gap: 12px;
+  padding: 0 16px; display: flex; align-items: center; gap: 10px;
   height: 52px; flex-shrink: 0; z-index: 10;
 }
-.logo { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; margin-right: 8px; }
-.logo-icon { width: 30px; height: 30px; background: linear-gradient(135deg, var(--accent), var(--green)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
-.sep { width: 1px; height: 24px; background: var(--border); }
+.logo { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; margin-right: 6px; }
+.logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent), var(--green)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
 .btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 12px; border-radius: 6px; border: none;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 6px; border: none;
   font-family: var(--font); font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: opacity .15s, transform .1s;
+  cursor: pointer; transition: opacity .15s, transform .1s; white-space: nowrap;
 }
 .btn:hover { opacity: .82; } .btn:active { transform: scale(.96); }
-.btn-ghost  { background: var(--border); color: var(--text); }
+.btn-ghost  { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 .btn-accent { background: var(--accent); color: #fff; }
 .btn-green  { background: var(--green);  color: #0f1117; }
 .btn-yellow { background: var(--yellow); color: #0f1117; }
 .btn-run {
   background: linear-gradient(135deg, var(--accent), var(--green));
-  color: #fff; padding: 6px 16px; font-size: 13px; font-weight: 700;
+  color: #fff; padding: 6px 14px; font-size: 13px; font-weight: 700;
   border-radius: 7px; border: none; cursor: pointer; font-family: var(--font);
-  box-shadow: 0 2px 12px rgba(108,99,255,.4);
+  box-shadow: 0 2px 12px rgba(124,116,255,.35);
   transition: opacity .15s, box-shadow .15s;
 }
-.btn-run:hover { opacity: .9; box-shadow: 0 2px 18px rgba(108,99,255,.6); }
+.btn-run:hover { opacity: .9; box-shadow: 0 2px 18px rgba(124,116,255,.55); }
 
 /* ── Tabs ── */
 .tabs { display: flex; gap: 2px; background: var(--bg); border-radius: 6px; padding: 2px; margin-left: auto; }
-.tab { padding: 4px 14px; border-radius: 4px; border: none; background: transparent; color: var(--muted); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.tab { padding: 4px 12px; border-radius: 4px; border: none; background: transparent; color: var(--muted); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
 .tab.active { background: var(--surface2); color: var(--text); }
 
-/* ── Status ── */
+/* ── Status bar ── */
 #statusBar { font-size: 11px; color: var(--muted); white-space: nowrap; }
 .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; background: var(--muted); }
-.status-dot.ok { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.status-dot.ok  { background: var(--green); box-shadow: 0 0 5px var(--green); }
 .status-dot.err { background: var(--red); }
 
 /* ── Pages ── */
@@ -73,27 +74,52 @@ header {
 
 /* ── MAP PAGE ── */
 #mapPage { flex-direction: column; }
-.map-main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; gap: 8px; padding: 8px; background: var(--bg); }
-
-.tree-panel {
-  display: flex; flex-direction: column; border: 1px solid var(--border);
-  border-radius: var(--radius); overflow: hidden;
+.map-main {
+  flex: 1; display: grid;
+  grid-template-columns: minmax(260px, 28%) 1fr 1fr;
+  min-height: 0; gap: 16px; padding: 16px; background: var(--bg);
 }
 
+/* ── Panels (shared) ── */
+.tree-panel {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  background: var(--surface);
+}
 .panel-header {
   padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
 }
 .panel-title { font-size: 11px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .panel-dot { width: 8px; height: 8px; border-radius: 50%; }
+.tree-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
 
-.tree-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
+/* ── Origin table ── */
+.origin-scroll { flex: 1; overflow-y: auto; overflow-x: auto; }
+.origin-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.origin-table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--surface2); padding: 5px 6px;
+  text-align: left; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px; color: var(--muted);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.origin-table td { padding: 1px 3px; border-bottom: 1px solid rgba(255,255,255,.03); vertical-align: middle; }
+.origin-table tr:hover td { background: rgba(255,255,255,.025); }
+.origin-input {
+  background: transparent; border: none; color: var(--text);
+  font-family: var(--mono); font-size: 11px; padding: 3px 4px;
+  outline: none; width: 100%; min-width: 36px;
+}
+.origin-input:focus { background: rgba(124,116,255,.12); border-radius: 3px; }
+.origin-input::placeholder { color: var(--muted); opacity: .4; }
+.origin-dot-cell { width: 44px; padding: 1px 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
 
 /* ── Tree nodes ── */
 .tree-node { position: relative; }
 .tree-row {
   display: flex; align-items: center; gap: 4px;
-  min-height: 28px; padding: 2px 6px 2px 4px;
+  min-height: 28px; padding: 2px 6px 2px 2px;
   position: relative; user-select: none;
   border-bottom: 1px solid rgba(255,255,255,.03);
 }
@@ -107,44 +133,41 @@ header {
 .toggle-btn:hover { color: var(--text); background: var(--border); }
 .spacer { width: 16px; flex-shrink: 0; }
 
-.tree-key { font-family: var(--mono); font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.tree-key   { font-family: var(--mono); font-size: 12px; color: var(--accent); flex-shrink: 0; }
 .tree-colon { color: var(--muted); font-size: 12px; margin: 0 2px; flex-shrink: 0; }
-.tree-val { font-family: var(--mono); font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tree-val.string { color: var(--green); }
-.tree-val.number { color: var(--yellow); }
+.tree-val   { font-family: var(--mono); font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-val.string  { color: var(--green); }
+.tree-val.number  { color: var(--yellow); }
 .tree-val.boolean { color: var(--red); }
 .tree-val.null    { color: var(--muted); font-style: italic; }
 .tree-type { font-size: 10px; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font-family: var(--mono); flex-shrink: 0; }
-.tree-type.array  { color: var(--yellow); border-color: rgba(245,158,11,.3); }
-.tree-type.object { color: var(--blue);   border-color: rgba(59,130,246,.3); }
+.tree-type.array  { color: var(--yellow); border-color: rgba(250,168,49,.3); }
+.tree-type.object { color: var(--blue);   border-color: rgba(77,159,255,.3); }
 .tree-more { font-size: 11px; color: var(--muted); font-style: italic; padding: 3px 6px; }
+
+/* Source value preview in target rows */
 .src-preview { font-size: 11px; font-family: var(--mono); opacity: .8; margin-left: 6px; white-space: nowrap; flex-shrink: 0; }
 
-/* ── Meta inputs (source origin column) ── */
+/* Unmapped target fields */
+.dst-unmapped .tree-key,
+.dst-unmapped .tree-colon,
+.dst-unmapped .tree-val { opacity: .4; }
+.dst-unmapped .port-dot.dst { border-color: rgba(250,168,49,.5) !important; }
+.badge-unmapped {
+  font-size: 9px; color: var(--yellow); background: rgba(250,168,49,.1);
+  border: 1px solid rgba(250,168,49,.25); border-radius: 3px;
+  padding: 0 3px; margin-left: 4px; flex-shrink: 0;
+}
+
+/* Meta origin inputs (toggled) */
 .meta-sys, .meta-field {
-  background: rgba(0,0,0,.3); border: 1px solid var(--border); border-radius: 3px;
+  background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 3px;
   color: var(--muted); font-family: var(--mono); font-size: 10px;
   padding: 1px 4px; outline: none; width: 76px; flex-shrink: 0;
 }
 .meta-sys:focus, .meta-field:focus { border-color: var(--accent); color: var(--text); }
 .meta-sys::placeholder, .meta-field::placeholder { opacity: .35; font-style: italic; }
 .meta-divider { width: 1px; background: var(--border); align-self: stretch; margin: 3px 2px; flex-shrink: 0; }
-
-/* ── Unmapped target fields ── */
-.dst-unmapped .tree-key,
-.dst-unmapped .tree-colon,
-.dst-unmapped .tree-val { opacity: .45; }
-.dst-unmapped .port-dot.dst { border-color: rgba(245,158,11,.55) !important; }
-.badge-unmapped {
-  font-size: 9px; color: var(--yellow); background: rgba(245,158,11,.12);
-  border: 1px solid rgba(245,158,11,.25); border-radius: 3px;
-  padding: 0 3px; margin-left: 4px; flex-shrink: 0; letter-spacing: .3px;
-}
-
-/* ── Mapping chip comments ── */
-.chip-note-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; padding: 0 2px; line-height: 1; opacity: .5; }
-.chip-note-btn:hover, .chip-note-btn.active { opacity: 1; color: var(--yellow); }
-.chip-comment { font-size: 10px; color: var(--muted); font-style: italic; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Port dots ── */
 .port-dot {
@@ -153,11 +176,18 @@ header {
   flex-shrink: 0; transition: background .15s, border-color .15s, transform .1s;
   position: relative; z-index: 5;
 }
+/* Source RIGHT dot — drag to target */
 .port-dot.src { cursor: crosshair; margin-left: auto; }
-.port-dot.dst { cursor: default; margin-right: 4px; }
-.port-dot:hover { transform: scale(1.3); }
-.port-dot.src:hover { border-color: var(--green); background: rgba(0,212,170,.2); }
+.port-dot.src:hover { border-color: var(--green); background: rgba(16,219,180,.2); }
+/* Source LEFT dot — receives from origin */
+.port-dot.src-left { cursor: default; flex-shrink: 0; }
+.port-dot.src-left.drop-hover { border-color: var(--blue); background: var(--blue); transform: scale(1.35); }
+/* Target LEFT dot — receives from source */
+.port-dot.dst { cursor: default; flex-shrink: 0; }
 .port-dot.dst.drop-hover { border-color: var(--green); background: var(--green); transform: scale(1.4); }
+/* Origin RIGHT dot — drag to source */
+.port-dot.origin { cursor: crosshair; }
+.port-dot.origin:hover { border-color: var(--accent); background: rgba(124,116,255,.2); transform: scale(1.2); }
 .port-dot.connected { border-width: 2px; }
 
 /* ── Mapping bar ── */
@@ -167,50 +197,43 @@ header {
   flex-wrap: wrap; min-height: 40px; flex-shrink: 0;
 }
 .mapping-chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center; gap: 5px;
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 5px; padding: 3px 8px; font-size: 11px; font-family: var(--mono);
-  max-width: 360px;
+  border-radius: 5px; padding: 3px 7px; font-size: 11px; font-family: var(--mono);
+  max-width: 380px;
 }
 .mapping-chip .src-path { color: var(--accent); }
-.mapping-chip .arrow { color: var(--muted); }
+.mapping-chip .arrow    { color: var(--muted); }
 .mapping-chip .dst-path { color: var(--green); }
-.mapping-chip .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 2px; line-height: 1; }
+.mapping-chip .del-btn  { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 2px; line-height: 1; }
 .mapping-chip .del-btn:hover { color: var(--red); }
-.mapping-empty { color: var(--muted); font-size: 12px; font-style: italic; }
+.mapping-empty  { color: var(--muted); font-size: 12px; font-style: italic; }
+.chip-note-btn  { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; padding: 0 2px; line-height: 1; opacity: .5; }
+.chip-note-btn:hover, .chip-note-btn.active { opacity: 1; color: var(--yellow); }
+.chip-comment   { font-size: 10px; color: var(--muted); font-style: italic; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── SVG overlay ── */
-#svgOverlay {
-  position: fixed; inset: 0; width: 100vw; height: 100vh;
-  pointer-events: none; z-index: 100;
-}
-.conn-line { fill: none; stroke-width: 2; opacity: .85; }
-.conn-line-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
-#tempLine { fill: none; stroke: #fff; stroke-width: 1.5; stroke-dasharray: 5; opacity: .5; }
+#svgOverlay { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 100; }
+#tempLine { fill: none; stroke: rgba(255,255,255,.45); stroke-width: 1.5; stroke-dasharray: 5; }
 
 /* ── TRANSFORM PAGE ── */
-#transformPage { flex-direction: row; gap: 0; }
+#transformPage { flex-direction: row; }
 .transform-left  { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow: hidden; }
 .transform-right { width: 300px; display: flex; flex-direction: column; overflow: hidden; }
-
 .t-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 .t-panel-header { padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .t-panel-body { flex: 1; overflow-y: auto; padding: 10px; }
-
-/* Source / output textareas */
 .code-ta { width: 100%; height: 100%; background: transparent; border: none; color: var(--text); font-family: var(--mono); font-size: 12px; line-height: 1.6; resize: none; outline: none; }
 
 /* Pipeline steps */
 .step-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; margin-bottom: 8px; overflow: hidden; }
 .step-card-head { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; }
 .step-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: .4px; }
-.badge-mapFields  { background: rgba(0,212,170,.15); color: var(--green); }
-.badge-flatten    { background: rgba(108,99,255,.15); color: var(--accent); }
-.badge-filter     { background: rgba(245,158,11,.15); color: var(--yellow); }
-.badge-aggregate  { background: rgba(255,101,132,.15); color: var(--red); }
+.badge-mapFields  { background: rgba(16,219,180,.15);  color: var(--green); }
+.badge-flatten    { background: rgba(124,116,255,.15); color: var(--accent); }
+.badge-filter     { background: rgba(250,168,49,.15);  color: var(--yellow); }
+.badge-aggregate  { background: rgba(255,112,150,.15); color: var(--red); }
 .step-body { padding: 8px 10px; border-top: 1px solid var(--border); }
-
-/* Tables in steps */
 .mini-table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .mini-table th { text-align: left; padding: 3px 4px; color: var(--muted); border-bottom: 1px solid var(--border); }
 .mini-table td { padding: 2px 3px; }
@@ -226,22 +249,20 @@ header {
 .add-menu { position: absolute; top: calc(100% + 4px); right: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; z-index: 200; min-width: 180px; box-shadow: 0 6px 20px rgba(0,0,0,.4); overflow: hidden; }
 .add-menu button { display: block; width: 100%; padding: 8px 14px; background: none; border: none; color: var(--text); font-family: var(--font); font-size: 12px; text-align: left; cursor: pointer; }
 .add-menu button:hover { background: rgba(255,255,255,.05); }
-.flex-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-
-/* OUTPUT */
 .output-panel { display: flex; flex-direction: column; min-height: 180px; border-top: 1px solid var(--border); flex-shrink: 0; }
 .output-head { padding: 6px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.row-cond, .row-agg { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+.row-cond input, .row-cond select, .row-agg input, .row-agg select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
+  color: var(--text); font-family: var(--mono); font-size: 11px; padding: 2px 5px; outline: none;
+}
 
 /* ── Misc ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .empty-msg { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 12px; }
-.row-cond, .row-agg { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
-.row-cond input, .row-cond select, .row-agg input, .row-agg select {
-  background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
-  color: var(--text); font-family: var(--mono); font-size: 11px; padding: 2px 5px; outline: none;
-}
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -251,21 +272,19 @@ header {
   <div class="logo"><div class="logo-icon">⚡</div>JSON ETL Studio</div>
   <div class="sep"></div>
 
-  <!-- Map tab controls -->
-  <div id="mapControls" style="display:flex;align-items:center;gap:6px">
-    <button class="btn btn-ghost" onclick="reloadFiles()" title="Reload source.json and target.json">↻ Reload Files</button>
+  <div id="mapControls" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-ghost" onclick="reloadFiles()" title="Reload all files">↻ Reload</button>
     <button class="btn btn-ghost" onclick="uploadFile('src')" title="Upload source.json">⬆ Source</button>
     <button class="btn btn-ghost" onclick="uploadFile('dst')" title="Upload target.json">⬆ Target</button>
     <div class="sep"></div>
-    <button class="btn btn-ghost" onclick="loadTransformation()">📂 Load Mapping</button>
-    <button class="btn btn-green" onclick="saveTransformation()">💾 Save Mapping</button>
+    <button class="btn btn-ghost" onclick="loadTransformation()">📂 Load All</button>
+    <button class="btn btn-green" onclick="saveTransformation()">💾 Save All</button>
     <div class="sep"></div>
     <button class="btn btn-yellow" onclick="exportDrawio()">📊 Diagram</button>
     <button class="btn btn-yellow" onclick="exportSample()">📤 Sample JSON</button>
     <button class="btn btn-ghost" onclick="clearMappings()">✕ Clear</button>
   </div>
 
-  <!-- Transform tab controls -->
   <div id="transformControls" style="display:none;align-items:center;gap:6px">
     <button class="btn btn-ghost" onclick="syncMappingStep()">⟳ Sync from Map</button>
     <button class="btn-run" onclick="runTransform()">▶ Run Pipeline</button>
@@ -273,7 +292,7 @@ header {
 
   <div class="tabs" style="margin-left:auto">
     <button class="tab active" onclick="showPage('map')">🗺 Map</button>
-    <button class="tab" onclick="showPage('transform')">⚙ Transform</button>
+    <button class="tab"        onclick="showPage('transform')">⚙ Transform</button>
   </div>
   <div class="sep"></div>
   <div id="statusBar"><span class="status-dot" id="statusDot"></span><span id="statusMsg">Loading…</span></div>
@@ -282,13 +301,36 @@ header {
 <!-- ══ MAP PAGE ════════════════════════════════════════════════════════════ -->
 <div id="mapPage" class="page active">
   <div class="map-main">
-    <!-- Source tree -->
+
+    <!-- ── Origin panel (left) ── -->
+    <div class="tree-panel">
+      <div class="panel-header">
+        <span class="panel-title"><span class="panel-dot" style="background:#7b68ee"></span>Origin</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span id="origInfo" style="font-size:11px;color:var(--muted)"></span>
+          <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="addOriginRow()">+ Row</button>
+        </div>
+      </div>
+      <div class="origin-scroll" id="origScroll">
+        <table class="origin-table" id="originTable">
+          <thead>
+            <tr>
+              <th>System</th><th>Table</th><th>Field</th><th>Comment</th><th title="Drag to source field">→</th>
+            </tr>
+          </thead>
+          <tbody id="originBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Source tree (middle) ── -->
     <div class="tree-panel">
       <div class="panel-header">
         <span class="panel-title"><span class="panel-dot" style="background:var(--accent)"></span>source.json</span>
         <div style="display:flex;align-items:center;gap:8px">
           <span id="srcInfo" style="font-size:11px;color:var(--muted)"></span>
-          <button class="btn btn-ghost" id="metaToggleBtn" style="padding:2px 8px;font-size:11px" onclick="toggleMeta()" title="Show/hide source origin metadata column">📋 Origin</button>
+          <button class="btn btn-ghost" id="metaToggleBtn" style="padding:2px 8px;font-size:11px"
+            onclick="toggleMeta()" title="Show/hide source origin metadata">📋 Origin labels</button>
         </div>
       </div>
       <div class="tree-scroll" id="srcScroll">
@@ -296,7 +338,7 @@ header {
       </div>
     </div>
 
-    <!-- Target tree -->
+    <!-- ── Target tree (right) ── -->
     <div class="tree-panel">
       <div class="panel-header">
         <span class="panel-title"><span class="panel-dot" style="background:var(--green)"></span>target.json</span>
@@ -306,18 +348,18 @@ header {
         <div id="dstTree"><div class="empty-msg">Loading target.json…</div></div>
       </div>
     </div>
+
   </div>
 
   <!-- Mapping bar -->
   <div class="mapping-bar" id="mappingBar">
-    <span class="mapping-empty">Drag from a source field (right dot) to a target field (left dot) to create a mapping.</span>
+    <span class="mapping-empty">Drag from source right dot (●) to target left dot (●), or from origin (●) to source left dot (●).</span>
   </div>
 </div>
 
 <!-- ══ TRANSFORM PAGE ══════════════════════════════════════════════════════ -->
 <div id="transformPage" class="page">
   <div class="transform-left">
-    <!-- Source input -->
     <div class="t-panel" style="max-height:45%">
       <div class="t-panel-header">
         <span class="panel-title">Source JSON</span>
@@ -328,25 +370,22 @@ header {
           placeholder="Paste or load source JSON here..."></textarea>
       </div>
     </div>
-    <!-- Output -->
     <div class="output-panel" style="flex:1">
       <div class="output-head">
         <span class="panel-title"><span class="panel-dot" style="background:var(--green)"></span>Output</span>
         <div style="display:flex;gap:6px;align-items:center">
           <span id="tOutputCount" style="font-size:11px;color:var(--muted)"></span>
           <button class="btn btn-ghost" onclick="copyOutput()">Copy</button>
-          <button class="btn btn-green" onclick="downloadOutput()">Download</button>
+          <button class="btn btn-green"  onclick="downloadOutput()">Download</button>
         </div>
       </div>
       <div style="flex:1;overflow:hidden;display:flex">
         <textarea class="code-ta" id="tOutputArea" readonly spellcheck="false"
-          placeholder="Output appears here after running the pipeline."></textarea>
+          placeholder="Output appears here after running."></textarea>
       </div>
     </div>
   </div>
-
   <div class="transform-right">
-    <!-- Pipeline -->
     <div class="t-panel" style="flex:1">
       <div class="t-panel-header">
         <span class="panel-title">⚙ Pipeline Steps</span>
@@ -361,10 +400,9 @@ header {
         </div>
       </div>
       <div id="stepList" class="t-panel-body">
-        <div class="empty-msg">No steps yet. Add a step or sync from the Map tab.</div>
+        <div class="empty-msg">No steps. Add a step or sync from Map tab.</div>
       </div>
     </div>
-    <!-- Logs -->
     <div style="flex-shrink:0;border-top:1px solid var(--border)">
       <div class="t-panel-header"><span class="panel-title">Execution Logs</span></div>
       <div id="logArea" style="padding:8px;max-height:140px;overflow-y:auto;font-size:11px;font-family:var(--mono)">
@@ -374,13 +412,12 @@ header {
   </div>
 </div>
 
-<!-- ══ SVG CONNECTION OVERLAY ══════════════════════════════════════════════ -->
+<!-- SVG connection overlay -->
 <svg id="svgOverlay" xmlns="http://www.w3.org/2000/svg">
   <defs id="svgDefs"></defs>
   <path id="tempLine" d="" style="display:none"/>
 </svg>
 
-<!-- Hidden file inputs -->
 <input type="file" id="fileInputSrc" accept=".json" style="display:none" onchange="handleUpload(event,'src')"/>
 <input type="file" id="fileInputDst" accept=".json" style="display:none" onchange="handleUpload(event,'dst')"/>
 
@@ -393,17 +430,19 @@ header {
 
 let sourceData = null;
 let targetData = null;
-let mappings = [];          // [{id, src, dst, color, comment}]
+let originData = [];          // [{id, sourceSystem, table, field, comment}]
+let mappings = [];            // [{id, src, dst, color, comment}]  source→target
+let originMappings = [];      // [{id, originId, srcPath, color}]  origin→source
 let expandedSrc = new Set();
 let expandedDst = new Set();
-let dragState = null;
-let allSrcPaths = [];       // flat list of all paths in source tree
-let allDstPaths = [];       // flat list of all paths in target tree
-let steps = [];             // pipeline steps
-let fieldMeta = {};         // { 'srcPath': { sourceSystem, sourceField } }
+let dragState = null;         // {id, srcSide:'src'|'origin', x0, y0}
+let allSrcPaths = [];
+let allDstPaths = [];
+let steps = [];
+let fieldMeta = {};           // {srcPath: {sourceSystem, sourceField}}
 let showMeta = false;
 
-const COLORS = ['#6c63ff','#00d4aa','#ff6584','#f59e0b','#3b82f6','#ec4899','#10b981','#f97316','#8b5cf6','#06b6d4'];
+const COLORS = ['#7c74ff','#10dbb4','#ff7096','#faa831','#4d9fff','#f472b6','#22d3ee','#fb923c','#a78bfa','#34d399'];
 let colorCursor = 0;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -413,37 +452,25 @@ let colorCursor = 0;
 function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 function getType(v) {
   if (v === null) return 'null';
   if (Array.isArray(v)) return 'array';
   return typeof v;
 }
-
 function setStatus(msg, type = '') {
   document.getElementById('statusMsg').textContent = msg;
   const dot = document.getElementById('statusDot');
   dot.className = 'status-dot' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
 }
-
 function uid() { return Math.random().toString(36).slice(2, 9); }
+function nextColor() { return COLORS[(colorCursor++) % COLORS.length]; }
 
 function getValueAtPath(data, path) {
-  if (data == null || path === '' || path == null) return data;
-  // Normalise: [0].foo  →  0.foo  then split on "."
+  if (data == null || !path) return data;
   const parts = path.replace(/\[(\d+)\]/g, '.$1').replace(/^\./, '').split('.');
   let cur = data;
-  for (const p of parts) {
-    if (cur == null) return undefined;
-    cur = cur[p];
-  }
+  for (const p of parts) { if (cur == null) return undefined; cur = cur[p]; }
   return cur;
-}
-
-function nextColor() {
-  const c = COLORS[colorCursor % COLORS.length];
-  colorCursor++;
-  return c;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -453,10 +480,10 @@ function nextColor() {
 function showPage(name) {
   document.getElementById('mapPage').classList.toggle('active', name === 'map');
   document.getElementById('transformPage').classList.toggle('active', name === 'transform');
-  document.getElementById('mapControls').style.display = name === 'map' ? 'flex' : 'none';
+  document.getElementById('mapControls').style.display       = name === 'map' ? 'flex' : 'none';
   document.getElementById('transformControls').style.display = name === 'transform' ? 'flex' : 'none';
-  document.querySelectorAll('.tab').forEach((t, i) =>
-    t.classList.toggle('active', (i===0 && name==='map') || (i===1 && name==='transform')));
+  document.querySelectorAll('.tab').forEach((t,i) =>
+    t.classList.toggle('active', (i===0&&name==='map')||(i===1&&name==='transform')));
   if (name === 'map') setTimeout(drawConnections, 50);
 }
 
@@ -465,7 +492,9 @@ function showPage(name) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function renderTree(data, side) {
-  allSrcPaths = []; allDstPaths = [];
+  if (side === 'src') allSrcPaths = [];
+  else               allDstPaths = [];
+
   const container = document.getElementById(side === 'src' ? 'srcTree' : 'dstTree');
   container.innerHTML = '';
   if (data == null) {
@@ -476,10 +505,11 @@ function renderTree(data, side) {
 }
 
 function appendNode(val, path, side, parent, depth) {
-  const type = getType(val);
-  const key = lastKey(path);
-  const expandSet = side === 'src' ? expandedSrc : expandedDst;
-  const isExpanded = expandSet.has(path);
+  const type        = getType(val);
+  const key         = lastKey(path);
+  const expandSet   = side === 'src' ? expandedSrc : expandedDst;
+  const isExpanded  = expandSet.has(path);
+  const isCollapsible = (type === 'object' || type === 'array');
 
   const node = document.createElement('div');
   node.className = 'tree-node';
@@ -487,53 +517,60 @@ function appendNode(val, path, side, parent, depth) {
 
   const row = document.createElement('div');
   row.className = 'tree-row';
-  row.style.paddingLeft = (depth * 16 + 4) + 'px';
+  row.style.paddingLeft = (depth * 16 + 2) + 'px';
   node.appendChild(row);
 
-  const isCollapsible = (type === 'object' || type === 'array') && val !== null;
+  // ── Left edge: dot(s) ────────────────────────────────────────────────────
+  if (side === 'src') {
+    // src-left: receives drops from origin
+    const ld = makeDot('src-left', null, path);
+    ld.addEventListener('mouseenter', () => { if (dragState?.srcSide === 'origin') ld.classList.add('drop-hover'); });
+    ld.addEventListener('mouseleave', () => ld.classList.remove('drop-hover'));
+    row.appendChild(ld);
 
-  // Port dot (dst on left, src on right)
-  const dot = document.createElement('div');
-  dot.className = 'port-dot ' + side;
-  dot.dataset.path = path;
-  dot.dataset.side = side;
+    // Optional meta inputs (shown when showMeta is on, leaf only)
+    if (!isCollapsible && showMeta) {
+      const meta = fieldMeta[path] || {};
+      row.appendChild(makeMetaInput('meta-sys',   'System',      meta.sourceSystem || '', v => { (fieldMeta[path]||(fieldMeta[path]={})).sourceSystem = v; }));
+      row.appendChild(makeMetaInput('meta-field', 'Orig. field', meta.sourceField  || '', v => { (fieldMeta[path]||(fieldMeta[path]={})).sourceField  = v; }));
+      const div = document.createElement('div'); div.className = 'meta-divider'; row.appendChild(div);
+    }
+  }
 
-  // Toggle or spacer
+  if (side === 'dst') {
+    const dd = makeDot('dst', null, path);
+    dd.addEventListener('mouseenter', () => { if (dragState?.srcSide === 'src') dd.classList.add('drop-hover'); });
+    dd.addEventListener('mouseleave', () => dd.classList.remove('drop-hover'));
+    row.appendChild(dd);
+  }
+
+  // ── Toggle / spacer ──────────────────────────────────────────────────────
   if (isCollapsible) {
-    const toggle = document.createElement('button');
-    toggle.className = 'toggle-btn';
-    toggle.textContent = isExpanded ? '▼' : '▶';
-    toggle.addEventListener('click', () => toggleNode(path, side));
-    row.appendChild(toggle);
+    const btn = document.createElement('button');
+    btn.className = 'toggle-btn';
+    btn.textContent = isExpanded ? '▼' : '▶';
+    btn.addEventListener('click', () => toggleNode(path, side));
+    row.appendChild(btn);
   } else {
-    const sp = document.createElement('span');
-    sp.className = 'spacer';
-    row.appendChild(sp);
+    const sp = document.createElement('span'); sp.className = 'spacer'; row.appendChild(sp);
   }
 
-  // Key label
+  // ── Key label ────────────────────────────────────────────────────────────
   if (key) {
-    const kEl = document.createElement('span');
-    kEl.className = 'tree-key';
-    kEl.textContent = key;
-    row.appendChild(kEl);
-    const col = document.createElement('span');
-    col.className = 'tree-colon';
-    col.textContent = ':';
-    row.appendChild(col);
+    const kEl = document.createElement('span'); kEl.className = 'tree-key'; kEl.textContent = key; row.appendChild(kEl);
+    const col = document.createElement('span'); col.className = 'tree-colon'; col.textContent = ':'; row.appendChild(col);
   }
 
-  // Value / type badge
+  // ── Value / badge ────────────────────────────────────────────────────────
   if (isCollapsible) {
     const badge = document.createElement('span');
     badge.className = 'tree-type ' + type;
-    const count = type === 'array' ? val.length : Object.keys(val).length;
-    badge.textContent = type === 'array' ? `array [${count}]` : `object {${count}}`;
+    badge.textContent = type === 'array' ? `array [${val.length}]` : `object {${Object.keys(val).length}}`;
     row.appendChild(badge);
   } else {
+    const display = val === null ? 'null' : String(val);
     const valEl = document.createElement('span');
     valEl.className = 'tree-val ' + type;
-    const display = val === null ? 'null' : String(val);
     valEl.textContent = display.length > 50 ? display.slice(0, 50) + '…' : display;
     valEl.title = display;
     row.appendChild(valEl);
@@ -541,111 +578,79 @@ function appendNode(val, path, side, parent, depth) {
     if (side === 'dst') {
       const m = mappings.find(m => m.dst === path);
       if (m && sourceData != null) {
-        // Show example value from mapped source field
         const srcVal = getValueAtPath(sourceData, m.src);
         if (srcVal !== undefined && srcVal !== null) {
-          const preview = document.createElement('span');
-          preview.className = 'src-preview';
-          preview.style.color = m.color;
-          const pStr = String(srcVal);
-          preview.textContent = '← ' + (pStr.length > 28 ? pStr.slice(0, 28) + '…' : pStr);
-          preview.title = 'Example value from: ' + m.src;
-          row.appendChild(preview);
+          const prev = document.createElement('span');
+          prev.className = 'src-preview';
+          prev.style.color = m.color;
+          const ps = String(srcVal);
+          prev.textContent = '← ' + (ps.length > 28 ? ps.slice(0, 28) + '…' : ps);
+          prev.title = 'From: ' + m.src;
+          row.appendChild(prev);
         }
       } else {
-        // No mapping — mark as unmapped
         row.classList.add('dst-unmapped');
         const badge = document.createElement('span');
         badge.className = 'badge-unmapped';
-        badge.textContent = '○ no source';
-        badge.title = 'No source field mapped to this field';
+        badge.textContent = '○ unmapped';
+        badge.title = 'No source mapping';
         row.appendChild(badge);
       }
     }
-
-    // For source leaf nodes in meta mode: insert editable origin fields at row start
-    if (side === 'src' && showMeta) {
-      const meta = fieldMeta[path] || {};
-
-      const divider = document.createElement('div');
-      divider.className = 'meta-divider';
-
-      const fldInput = document.createElement('input');
-      fldInput.className = 'meta-field';
-      fldInput.placeholder = 'Orig. field';
-      fldInput.value = meta.sourceField || '';
-      fldInput.title = 'Original fieldname in source system';
-      fldInput.addEventListener('input', () => {
-        fieldMeta[path] = fieldMeta[path] || {};
-        fieldMeta[path].sourceField = fldInput.value;
-      });
-      fldInput.addEventListener('mousedown', e => e.stopPropagation());
-
-      const sysInput = document.createElement('input');
-      sysInput.className = 'meta-sys';
-      sysInput.placeholder = 'System';
-      sysInput.value = meta.sourceSystem || '';
-      sysInput.title = 'Source system name (e.g. SAP, CRM)';
-      sysInput.addEventListener('input', () => {
-        fieldMeta[path] = fieldMeta[path] || {};
-        fieldMeta[path].sourceSystem = sysInput.value;
-      });
-      sysInput.addEventListener('mousedown', e => e.stopPropagation());
-
-      // Insert at the very start: sys | field | divider | ...rest
-      row.insertBefore(divider, row.firstChild);
-      row.insertBefore(fldInput, row.firstChild);
-      row.insertBefore(sysInput, row.firstChild);
-    }
   }
 
-  // Append dot — target: before toggle, source: after value (right side)
-  if (side === 'dst') {
-    row.insertBefore(dot, row.firstChild);
-  } else {
-    row.appendChild(dot);
+  // ── Right edge: src drag-out dot ─────────────────────────────────────────
+  if (side === 'src') {
+    const rd = makeDot('src', null, path);
+    rd.addEventListener('mousedown', e => startDrag(e, path, 'src'));
+    row.appendChild(rd);
   }
 
   // Collect paths
   if (side === 'src') allSrcPaths.push(path);
-  else allDstPaths.push(path);
+  else               allDstPaths.push(path);
 
-  // Drag events on source dots
-  if (side === 'src') {
-    dot.addEventListener('mousedown', (e) => startDrag(e, path));
-  }
-  // Drop events on target dots
-  if (side === 'dst') {
-    dot.addEventListener('mouseenter', () => { if (dragState) dot.classList.add('drop-hover'); });
-    dot.addEventListener('mouseleave', () => dot.classList.remove('drop-hover'));
-  }
-
-  // Children
+  // ── Children ─────────────────────────────────────────────────────────────
   if (isCollapsible && isExpanded) {
-    const children = document.createElement('div');
-    children.className = 'tree-children';
-    node.appendChild(children);
+    const childrenDiv = document.createElement('div');
+    childrenDiv.className = 'tree-children';
+    node.appendChild(childrenDiv);
 
     if (type === 'array') {
       const limit = Math.min(val.length, 20);
       for (let i = 0; i < limit; i++) {
-        const cp = path ? `${path}[${i}]` : `[${i}]`;
-        appendNode(val[i], cp, side, children, depth + 1);
+        appendNode(val[i], path ? `${path}[${i}]` : `[${i}]`, side, childrenDiv, depth + 1);
       }
       if (val.length > limit) {
         const more = document.createElement('div');
         more.className = 'tree-more';
         more.style.paddingLeft = ((depth + 1) * 16 + 20) + 'px';
         more.textContent = `… ${val.length - limit} more items`;
-        children.appendChild(more);
+        childrenDiv.appendChild(more);
       }
     } else {
       for (const [k, v] of Object.entries(val)) {
-        const cp = path ? `${path}.${k}` : k;
-        appendNode(v, cp, side, children, depth + 1);
+        appendNode(v, path ? `${path}.${k}` : k, side, childrenDiv, depth + 1);
       }
     }
   }
+}
+
+function makeDot(cls, id, path) {
+  const d = document.createElement('div');
+  d.className = 'port-dot ' + cls;
+  if (id)   d.dataset.id   = id;
+  if (path !== null) d.dataset.path = path;
+  d.dataset.side = cls;
+  return d;
+}
+
+function makeMetaInput(cls, placeholder, value, onUpdate) {
+  const inp = document.createElement('input');
+  inp.className = cls; inp.placeholder = placeholder; inp.value = value; inp.title = placeholder;
+  inp.addEventListener('input',     () => onUpdate(inp.value));
+  inp.addEventListener('mousedown', e => e.stopPropagation());
+  return inp;
 }
 
 function lastKey(path) {
@@ -656,11 +661,82 @@ function lastKey(path) {
 }
 
 function toggleNode(path, side) {
-  const expandSet = side === 'src' ? expandedSrc : expandedDst;
-  if (expandSet.has(path)) expandSet.delete(path);
-  else expandSet.add(path);
+  const s = side === 'src' ? expandedSrc : expandedDst;
+  if (s.has(path)) s.delete(path); else s.add(path);
   renderTree(side === 'src' ? sourceData : targetData, side);
   updateDotColors();
+  requestAnimationFrame(drawConnections);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ORIGIN TABLE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function renderOriginTable() {
+  const tbody = document.getElementById('originBody');
+  tbody.innerHTML = '';
+  originData.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.className = 'origin-row';
+    tr.dataset.id = row.id;
+
+    ['sourceSystem', 'table', 'field', 'comment'].forEach(col => {
+      const td = document.createElement('td');
+      const inp = document.createElement('input');
+      inp.className = 'origin-input';
+      inp.value = row[col] || '';
+      inp.placeholder = col === 'sourceSystem' ? 'e.g. SAP' : col === 'table' ? 'Table' : col === 'field' ? 'Field' : 'Note…';
+      inp.addEventListener('input', () => { row[col] = inp.value; });
+      td.appendChild(inp); tr.appendChild(td);
+    });
+
+    const dotTd = document.createElement('td');
+    dotTd.className = 'origin-dot-cell';
+
+    // Origin drag-out dot (right side)
+    const dot = document.createElement('div');
+    dot.className = 'port-dot origin';
+    dot.dataset.id   = row.id;
+    dot.dataset.side = 'origin';
+    dot.title = 'Drag to source field';
+    dot.addEventListener('mousedown', e => startDrag(e, row.id, 'origin'));
+
+    const del = document.createElement('button');
+    del.className = 'icon-btn'; del.textContent = '✕'; del.title = 'Remove row';
+    del.addEventListener('click', () => removeOriginRow(row.id));
+
+    dotTd.appendChild(dot);
+    dotTd.appendChild(del);
+    tr.appendChild(dotTd);
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('origInfo').textContent = originData.length
+    ? originData.length + ' fields'
+    : 'empty';
+}
+
+function addOriginRow() {
+  originData.push({ id: uid(), sourceSystem: '', table: '', field: '', comment: '' });
+  renderOriginTable();
+}
+
+function removeOriginRow(id) {
+  originData     = originData.filter(r => r.id !== id);
+  originMappings = originMappings.filter(m => m.originId !== id);
+  renderOriginTable();
+  requestAnimationFrame(drawConnections);
+}
+
+function addOriginMapping(originId, srcPath) {
+  if (originMappings.some(m => m.originId === originId && m.srcPath === srcPath)) return;
+  originMappings.push({ id: uid(), originId, srcPath, color: nextColor() });
+  requestAnimationFrame(drawConnections);
+  setStatus(`Origin connected to ${srcPath}`, 'ok');
+}
+
+function removeOriginMapping(id) {
+  originMappings = originMappings.filter(m => m.id !== id);
   requestAnimationFrame(drawConnections);
 }
 
@@ -668,11 +744,17 @@ function toggleNode(path, side) {
 // SVG CONNECTION LINES
 // ═══════════════════════════════════════════════════════════════════════════
 
-const svg = document.getElementById('svgOverlay');
+const svg     = document.getElementById('svgOverlay');
+const svgDefs = document.getElementById('svgDefs');
 const tempLine = document.getElementById('tempLine');
+const DOT_R = 6;  // offset from dot center to edge
 
-function dotEl(side, path) {
-  return document.querySelector(`.port-dot.${side}[data-path="${CSS.escape(path)}"]`);
+function dotEl(side, id) {
+  if (side === 'origin')   return document.querySelector(`.port-dot.origin[data-id="${CSS.escape(id)}"]`);
+  if (side === 'src-left') return document.querySelector(`.port-dot.src-left[data-path="${CSS.escape(id)}"]`);
+  if (side === 'src')      return document.querySelector(`.port-dot.src[data-path="${CSS.escape(id)}"]`);
+  if (side === 'dst')      return document.querySelector(`.port-dot.dst[data-path="${CSS.escape(id)}"]`);
+  return null;
 }
 
 function dotCenter(el) {
@@ -682,67 +764,84 @@ function dotCenter(el) {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 }
 
+// Bezier from exit point to entry point (offset by DOT_R so arrowhead is visible)
 function makeBezier(x1, y1, x2, y2) {
-  const cx = (x1 + x2) / 2;
-  return `M ${x1} ${y1} C ${cx} ${y1} ${cx} ${y2} ${x2} ${y2}`;
+  const sx = x1 + DOT_R;
+  const ex = x2 - DOT_R;
+  const cx = (sx + ex) / 2;
+  return `M ${sx} ${y1} C ${cx} ${y1} ${cx} ${y2} ${ex} ${y2}`;
 }
 
-const svgDefs = document.getElementById('svgDefs');
+function makeArrowMarker(id, color) {
+  const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+  marker.id = id;
+  marker.setAttribute('markerWidth', '9');
+  marker.setAttribute('markerHeight', '7');
+  marker.setAttribute('refX', '8');
+  marker.setAttribute('refY', '3.5');
+  marker.setAttribute('orient', 'auto');
+  marker.classList.add('conn-marker');
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  p.setAttribute('d', 'M0,0 L0,7 L9,3.5 z');
+  p.setAttribute('fill', color);
+  marker.appendChild(p);
+  return marker;
+}
+
+function drawConn(p1, p2, color, dashed, markerId) {
+  const d = makeBezier(p1.x, p1.y, p2.x, p2.y);
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.className = 'conn-group';
+
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  line.setAttribute('d', d);
+  line.setAttribute('stroke', color);
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke-width', '2');
+  line.setAttribute('opacity', '0.88');
+  if (dashed) line.setAttribute('stroke-dasharray', '6 3');
+  line.setAttribute('marker-end', `url(#${markerId})`);
+
+  const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  hit.setAttribute('d', d);
+  hit.setAttribute('stroke', 'transparent');
+  hit.setAttribute('fill', 'none');
+  hit.setAttribute('stroke-width', '14');
+  hit.style.cursor = 'pointer';
+  hit.style.pointerEvents = 'stroke';
+
+  g.appendChild(line);
+  g.appendChild(hit);
+  return { g, hit };
+}
 
 function drawConnections() {
   svg.querySelectorAll('.conn-group').forEach(el => el.remove());
   svgDefs.querySelectorAll('.conn-marker').forEach(el => el.remove());
 
-  for (const m of mappings) {
-    const srcDot = dotEl('src', m.src);
-    const dstDot = dotEl('dst', m.dst);
-    const p1 = dotCenter(srcDot);
-    const p2 = dotCenter(dstDot);
+  // ── Origin → Source (dashed) ──
+  for (const om of originMappings) {
+    const p1 = dotCenter(dotEl('origin', om.originId));
+    const p2 = dotCenter(dotEl('src-left', om.srcPath));
     if (!p1 || !p2) continue;
 
-    // Colored arrowhead marker unique to this mapping
-    const markerId = 'arrow-' + m.id;
-    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-    marker.id = markerId;
-    marker.setAttribute('markerWidth', '9');
-    marker.setAttribute('markerHeight', '9');
-    marker.setAttribute('refX', '8');
-    marker.setAttribute('refY', '3');
-    marker.setAttribute('orient', 'auto');
-    marker.classList.add('conn-marker');
-    const ap = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    ap.setAttribute('d', 'M0,0 L0,6 L9,3 z');
-    ap.setAttribute('fill', m.color);
-    marker.appendChild(ap);
-    svgDefs.appendChild(marker);
+    const mId = 'am_' + om.id;
+    svgDefs.appendChild(makeArrowMarker(mId, om.color));
+    const { g, hit } = drawConn(p1, p2, om.color, true, mId);
+    hit.addEventListener('click', () => removeOriginMapping(om.id));
+    svg.appendChild(g);
+  }
 
-    const d = makeBezier(p1.x, p1.y, p2.x, p2.y);
+  // ── Source → Target (solid) ──
+  for (const m of mappings) {
+    const p1 = dotCenter(dotEl('src', m.src));
+    const p2 = dotCenter(dotEl('dst', m.dst));
+    if (!p1 || !p2) continue;
 
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.className = 'conn-group';
-    g.dataset.id = m.id;
-
-    // Visible bezier line with arrowhead
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    line.setAttribute('d', d);
-    line.setAttribute('stroke', m.color);
-    line.setAttribute('fill', 'none');
-    line.setAttribute('stroke-width', '2');
-    line.setAttribute('opacity', '0.85');
-    line.setAttribute('marker-end', `url(#${markerId})`);
-
-    // Wide transparent hit area — click to delete
-    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    hit.setAttribute('d', d);
-    hit.setAttribute('stroke', 'transparent');
-    hit.setAttribute('fill', 'none');
-    hit.setAttribute('stroke-width', '12');
-    hit.style.cursor = 'pointer';
-    hit.style.pointerEvents = 'stroke';
+    const mId = 'sm_' + m.id;
+    svgDefs.appendChild(makeArrowMarker(mId, m.color));
+    const { g, hit } = drawConn(p1, p2, m.color, false, mId);
     hit.addEventListener('click', () => removeMapping(m.id));
-
-    g.appendChild(line);
-    g.appendChild(hit);
     svg.appendChild(g);
   }
 
@@ -750,40 +849,43 @@ function drawConnections() {
 }
 
 function updateDotColors() {
-  const mappedSrc = new Map(mappings.map(m => [m.src, m.color]));
-  const mappedDst = new Map(mappings.map(m => [m.dst, m.color]));
+  const mappedSrc  = new Map(mappings.map(m => [m.src, m.color]));
+  const mappedDst  = new Map(mappings.map(m => [m.dst, m.color]));
+  const mappedSrcL = new Map();
+  const mappedOrig = new Map();
+  for (const om of originMappings) {
+    mappedSrcL.set(om.srcPath,   om.color);
+    mappedOrig.set(om.originId,  om.color);
+  }
 
-  document.querySelectorAll('.port-dot.src').forEach(d => {
-    const c = mappedSrc.get(d.dataset.path);
-    d.classList.toggle('connected', !!c);
-    d.style.background = c ? c + '44' : '';
-    d.style.borderColor = c || '';
-  });
-  document.querySelectorAll('.port-dot.dst').forEach(d => {
-    const c = mappedDst.get(d.dataset.path);
-    d.classList.toggle('connected', !!c);
-    d.style.background = c ? c + '44' : '';
-    d.style.borderColor = c || '';
-  });
+  const applyDot = (sel, colorMap) => {
+    document.querySelectorAll(sel).forEach(d => {
+      const key = d.dataset.path ?? d.dataset.id;
+      const c   = colorMap.get(key);
+      d.classList.toggle('connected', !!c);
+      d.style.background   = c ? c + '44' : '';
+      d.style.borderColor  = c || '';
+    });
+  };
+  applyDot('.port-dot.src',      mappedSrc);
+  applyDot('.port-dot.dst',      mappedDst);
+  applyDot('.port-dot.src-left', mappedSrcL);
+  applyDot('.port-dot.origin',   mappedOrig);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DRAG AND DROP
 // ═══════════════════════════════════════════════════════════════════════════
 
-function startDrag(e, srcPath) {
+function startDrag(e, id, srcSide) {
   e.preventDefault();
-  const srcDot = e.currentTarget;
-  const p = dotCenter(srcDot);
+  const p = dotCenter(e.currentTarget);
   if (!p) return;
-
-  dragState = { srcPath, x0: p.x, y0: p.y };
+  dragState = { id, srcSide, x0: p.x, y0: p.y };
   tempLine.style.display = '';
   tempLine.setAttribute('d', `M ${p.x} ${p.y} L ${p.x} ${p.y}`);
-
-  // SVG stays pointer-events:none so mouse events reach underlying HTML elements
   document.addEventListener('mousemove', onDragMove);
-  document.addEventListener('mouseup', onDragEnd);
+  document.addEventListener('mouseup',   onDragEnd);
 }
 
 function onDragMove(e) {
@@ -791,10 +893,12 @@ function onDragMove(e) {
   const { x0, y0 } = dragState;
   tempLine.setAttribute('d', makeBezier(x0, y0, e.clientX, e.clientY));
 
-  // SVG is pointer-events:none so elementFromPoint sees the HTML dot elements directly
-  document.querySelectorAll('.port-dot.dst').forEach(d => d.classList.remove('drop-hover'));
+  // Highlight valid drop targets
+  const targetSel = dragState.srcSide === 'src' ? '.port-dot.dst' : '.port-dot.src-left';
+  const targetSide = dragState.srcSide === 'src' ? 'dst' : 'src-left';
+  document.querySelectorAll(targetSel).forEach(d => d.classList.remove('drop-hover'));
   const el = document.elementFromPoint(e.clientX, e.clientY);
-  if (el?.classList.contains('port-dot') && el.dataset.side === 'dst') {
+  if (el?.classList.contains('port-dot') && el.dataset.side === targetSide) {
     el.classList.add('drop-hover');
   }
 }
@@ -802,119 +906,103 @@ function onDragMove(e) {
 function onDragEnd(e) {
   if (!dragState) return;
   document.removeEventListener('mousemove', onDragMove);
-  document.removeEventListener('mouseup', onDragEnd);
-
+  document.removeEventListener('mouseup',   onDragEnd);
   tempLine.style.display = 'none';
   tempLine.setAttribute('d', '');
-  document.querySelectorAll('.port-dot.dst.drop-hover').forEach(d => d.classList.remove('drop-hover'));
+  document.querySelectorAll('.port-dot.drop-hover').forEach(d => d.classList.remove('drop-hover'));
 
   const el = document.elementFromPoint(e.clientX, e.clientY);
-  if (el?.classList.contains('port-dot') && el.dataset.side === 'dst') {
-    addMapping(dragState.srcPath, el.dataset.path);
+  if (dragState.srcSide === 'src' && el?.dataset.side === 'dst') {
+    addMapping(dragState.id, el.dataset.path);
+  } else if (dragState.srcSide === 'origin' && el?.dataset.side === 'src-left') {
+    addOriginMapping(dragState.id, el.dataset.path);
   }
   dragState = null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MAPPING MANAGEMENT
+// MAPPING MANAGEMENT  (source → target)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function addMapping(src, dst) {
   mappings = mappings.filter(m => m.dst !== dst);
   mappings.push({ id: uid(), src, dst, color: nextColor() });
   renderMappingBar();
-  renderTree(targetData, 'dst');  // refresh to show source value preview
+  renderTree(targetData, 'dst');
   requestAnimationFrame(drawConnections);
-  setStatus(`Mapped ${src} → ${dst}`, 'ok');
+  setStatus(`Mapped  ${src}  →  ${dst}`, 'ok');
 }
 
 function removeMapping(id) {
   mappings = mappings.filter(m => m.id !== id);
   renderMappingBar();
-  renderTree(targetData, 'dst');  // refresh to clear source value preview
+  renderTree(targetData, 'dst');
   requestAnimationFrame(drawConnections);
 }
 
 function clearMappings() {
-  mappings = [];
-  colorCursor = 0;
+  mappings = []; originMappings = []; colorCursor = 0;
   renderMappingBar();
   renderTree(targetData, 'dst');
   requestAnimationFrame(drawConnections);
   setStatus('Mappings cleared');
 }
 
-// ─── Meta mode toggle ────────────────────────────────────────────────────────
+// ── Meta mode toggle ──────────────────────────────────────────────────────
 function toggleMeta() {
   showMeta = !showMeta;
-  document.getElementById('metaToggleBtn').style.background = showMeta ? 'var(--accent)' : '';
-  document.getElementById('metaToggleBtn').style.color = showMeta ? '#fff' : '';
+  const btn = document.getElementById('metaToggleBtn');
+  btn.style.background = showMeta ? 'var(--accent)' : '';
+  btn.style.color      = showMeta ? '#fff' : '';
   renderTree(sourceData, 'src');
   requestAnimationFrame(drawConnections);
 }
 
-// ─── Mapping comment editing ─────────────────────────────────────────────────
+// ── Mapping comment ───────────────────────────────────────────────────────
 function editMappingComment(id) {
   const m = mappings.find(m => m.id === id);
   if (!m) return;
-  const current = m.comment || '';
-  const note = prompt(`Comment for mapping:\n${m.src}  →  ${m.dst}`, current);
-  if (note !== null) {
-    m.comment = note;
-    renderMappingBar();
-  }
+  const note = prompt(`Comment for:\n${m.src}  →  ${m.dst}`, m.comment || '');
+  if (note !== null) { m.comment = note; renderMappingBar(); }
 }
 
-// ─── Export sample destination JSON ──────────────────────────────────────────
+// ── Export sample destination JSON ───────────────────────────────────────
 function exportSample() {
   if (!targetData) return setStatus('No target loaded', 'err');
-
   function fill(obj, basePath) {
     if (obj === null || typeof obj !== 'object') {
-      // Leaf: replace with mapped source value if available
       const m = mappings.find(m => m.dst === basePath);
-      if (m && sourceData != null) {
-        const v = getValueAtPath(sourceData, m.src);
-        return v !== undefined ? v : obj;
-      }
+      if (m && sourceData != null) { const v = getValueAtPath(sourceData, m.src); return v !== undefined ? v : obj; }
       return obj;
     }
-    if (Array.isArray(obj)) {
-      return obj.map((item, i) => fill(item, basePath ? `${basePath}[${i}]` : `[${i}]`));
-    }
+    if (Array.isArray(obj)) return obj.map((item, i) => fill(item, basePath ? `${basePath}[${i}]` : `[${i}]`));
     const result = {};
-    for (const [k, v] of Object.entries(obj)) {
-      result[k] = fill(v, basePath ? `${basePath}.${k}` : k);
-    }
+    for (const [k, v] of Object.entries(obj)) result[k] = fill(v, basePath ? `${basePath}.${k}` : k);
     return result;
   }
-
-  const sample = fill(targetData, '');
-  const blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(fill(targetData, ''), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'sample-destination.json';
-  a.click();
+  a.href = URL.createObjectURL(blob); a.download = 'sample-destination.json'; a.click();
   URL.revokeObjectURL(a.href);
   setStatus('sample-destination.json exported', 'ok');
 }
 
+// ── Mapping bar ───────────────────────────────────────────────────────────
 function renderMappingBar() {
   const bar = document.getElementById('mappingBar');
   if (mappings.length === 0) {
-    bar.innerHTML = '<span class="mapping-empty">Drag from a source field (right dot ●) to a target field (left dot ●) to create a mapping.</span>';
+    bar.innerHTML = '<span class="mapping-empty">Drag from source right dot (●) to target left dot (●) to create a mapping.</span>';
     return;
   }
   bar.innerHTML = mappings.map(m => {
     const hasNote = m.comment?.trim();
-    return `
-    <span class="mapping-chip" style="border-color:${m.color}44">
+    return `<span class="mapping-chip" style="border-color:${m.color}44">
       <span class="src-path" style="color:${m.color}">${esc(m.src)}</span>
       <span class="arrow">→</span>
       <span class="dst-path" style="color:${m.color}">${esc(m.dst)}</span>
       ${hasNote ? `<span class="chip-comment" title="${esc(m.comment)}">💬 ${esc(m.comment)}</span>` : ''}
-      <button class="chip-note-btn ${hasNote ? 'active' : ''}" onclick="editMappingComment('${m.id}')"
-        title="${hasNote ? 'Edit: ' + esc(m.comment) : 'Add comment'}">✏</button>
+      <button class="chip-note-btn ${hasNote?'active':''}" onclick="editMappingComment('${m.id}')"
+        title="${hasNote ? 'Edit note' : 'Add note'}">✏</button>
       <button class="del-btn" onclick="removeMapping('${m.id}')" title="Remove">✕</button>
     </span>`;
   }).join('');
@@ -927,55 +1015,46 @@ function renderMappingBar() {
 async function reloadFiles() {
   setStatus('Loading files…');
   try {
-    const [srcRes, dstRes] = await Promise.all([fetch('/api/source'), fetch('/api/target')]);
-    const srcData = await srcRes.json();
-    const dstData = await dstRes.json();
+    const [srcR, dstR, origR] = await Promise.all([
+      fetch('/api/source').then(r => r.json()),
+      fetch('/api/target').then(r => r.json()),
+      fetch('/api/origin').then(r => r.json()),
+    ]);
 
-    sourceData = srcData.data;
-    targetData = dstData.data;
+    sourceData = srcR.data;
+    targetData = dstR.data;
+    if (Array.isArray(origR.data)) originData = origR.data;
 
     expandedSrc.clear(); expandedDst.clear();
-    // Auto-expand first level
     if (sourceData != null) autoExpand(sourceData, '', 'src', 1);
     if (targetData != null) autoExpand(targetData, '', 'dst', 1);
 
     renderTree(sourceData, 'src');
     renderTree(targetData, 'dst');
+    renderOriginTable();
     updateFileInfo();
-    drawConnections();
+    requestAnimationFrame(drawConnections);
     setStatus('Files loaded', 'ok');
-  } catch(e) {
-    setStatus('Load error: ' + e.message, 'err');
-  }
+  } catch(e) { setStatus('Load error: ' + e.message, 'err'); }
 }
 
 function autoExpand(val, path, side, maxDepth) {
   if (maxDepth <= 0) return;
   const type = getType(val);
+  const s = side === 'src' ? expandedSrc : expandedDst;
   if (type === 'object') {
-    const expandSet = side === 'src' ? expandedSrc : expandedDst;
-    expandSet.add(path);
-    for (const [k, v] of Object.entries(val)) {
-      autoExpand(v, path ? `${path}.${k}` : k, side, maxDepth - 1);
-    }
+    s.add(path);
+    for (const [k, v] of Object.entries(val)) autoExpand(v, path ? `${path}.${k}` : k, side, maxDepth - 1);
   } else if (type === 'array' && val.length > 0) {
-    const expandSet = side === 'src' ? expandedSrc : expandedDst;
-    expandSet.add(path);
+    s.add(path);
     autoExpand(val[0], path ? `${path}[0]` : '[0]', side, maxDepth - 1);
   }
 }
 
 function updateFileInfo() {
-  const srcInfo = document.getElementById('srcInfo');
-  const dstInfo = document.getElementById('dstInfo');
-  if (sourceData != null) {
-    srcInfo.textContent = Array.isArray(sourceData)
-      ? `${sourceData.length} records` : typeof sourceData === 'object' ? 'object' : typeof sourceData;
-  } else srcInfo.textContent = 'not found';
-  if (targetData != null) {
-    dstInfo.textContent = Array.isArray(targetData)
-      ? `${targetData.length} records` : typeof targetData === 'object' ? 'object' : typeof targetData;
-  } else dstInfo.textContent = 'not found';
+  const fmt = d => d == null ? 'not found' : Array.isArray(d) ? `${d.length} records` : typeof d === 'object' ? 'object' : typeof d;
+  document.getElementById('srcInfo').textContent = fmt(sourceData);
+  document.getElementById('dstInfo').textContent = fmt(targetData);
 }
 
 function uploadFile(side) {
@@ -983,157 +1062,134 @@ function uploadFile(side) {
 }
 
 function handleUpload(e, side) {
-  const file = e.target.files[0];
-  if (!file) return;
+  const file = e.target.files[0]; if (!file) return;
   setStatus(`Reading ${file.name}…`);
   const endpoint = side === 'src' ? 'source' : 'target';
   const reader = new FileReader();
   reader.onerror = () => setStatus('Failed to read file', 'err');
-  reader.onload = async (ev) => {
+  reader.onload = async ev => {
     try {
       let data;
       try { data = JSON.parse(ev.target.result); }
       catch (pe) { setStatus('Invalid JSON: ' + pe.message, 'err'); return; }
-      const res = await fetch('/api/' + endpoint, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ data })
-      });
+      const res  = await fetch('/api/' + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ data }) });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || 'Server error');
       setStatus(`${file.name} saved as ${endpoint}.json`, 'ok');
       await reloadFiles();
-    } catch(err) {
-      setStatus('Upload error: ' + err.message, 'err');
-    } finally {
-      e.target.value = ''; // reset after read is complete so the same file can be re-uploaded
-    }
+    } catch(err) { setStatus('Upload error: ' + err.message, 'err'); }
+    finally { e.target.value = ''; }
   };
   reader.readAsText(file);
 }
 
 async function loadTransformation() {
   try {
-    const res = await fetch('/api/transformation');
-    const data = await res.json();
-    mappings = (data.mappings || []).map(m => ({ ...m, color: m.color || nextColor() }));
-    steps = data.steps || [];
-    fieldMeta = data.fieldMeta || {};
-    colorCursor = mappings.length;
+    const [tRes, oRes] = await Promise.all([
+      fetch('/api/transformation').then(r => r.json()),
+      fetch('/api/origin').then(r => r.json()),
+    ]);
+
+    mappings       = (tRes.mappings       || []).map(m => ({ ...m, color: m.color || nextColor() }));
+    originMappings = (tRes.originMappings || []).map(m => ({ ...m, color: m.color || nextColor() }));
+    steps          = tRes.steps    || [];
+    fieldMeta      = tRes.fieldMeta || {};
+    if (Array.isArray(oRes.data)) originData = oRes.data;
+
+    colorCursor = mappings.length + originMappings.length;
     renderMappingBar();
     renderSteps();
-    renderTree(sourceData, 'src');  // refresh to show loaded field meta
+    renderOriginTable();
+    renderTree(sourceData, 'src');
     renderTree(targetData, 'dst');
     requestAnimationFrame(drawConnections);
-    setStatus(`Loaded ${mappings.length} mappings, ${steps.length} steps`, 'ok');
-  } catch(e) {
-    setStatus('Load error: ' + e.message, 'err');
-  }
+    setStatus(`Loaded: ${mappings.length} mappings, ${originMappings.length} origin links, ${steps.length} steps`, 'ok');
+  } catch(e) { setStatus('Load error: ' + e.message, 'err'); }
 }
 
 async function saveTransformation() {
   try {
     const body = {
-      mappings: mappings.map(({ id, src, dst, color, comment }) => ({ id, src, dst, color, comment })),
+      mappings:       mappings.map(({ id, src, dst, color, comment }) => ({ id, src, dst, color, comment })),
+      originMappings: originMappings.map(({ id, originId, srcPath, color }) => ({ id, originId, srcPath, color })),
       steps,
       fieldMeta,
     };
-    const res = await fetch('/api/transformation', {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (!data.ok) throw new Error('Save failed');
-    setStatus('transformation.json saved', 'ok');
-  } catch(e) {
-    setStatus('Save error: ' + e.message, 'err');
-  }
+    const [tRes, oRes] = await Promise.all([
+      fetch('/api/transformation', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
+      fetch('/api/origin',         { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ data: originData }) }).then(r => r.json()),
+    ]);
+    if (!tRes.ok || !oRes.ok) throw new Error('Save failed');
+    setStatus('Saved: transformation.json + origin.json', 'ok');
+  } catch(e) { setStatus('Save error: ' + e.message, 'err'); }
 }
 
 async function exportDrawio() {
-  if (mappings.length === 0) return setStatus('No mappings to export', 'err');
+  if (mappings.length === 0 && originMappings.length === 0) return setStatus('No mappings to export', 'err');
   try {
     const body = {
-      mappings: mappings.map(({src,dst}) => ({src,dst})),
-      sourcePaths: allSrcPaths.filter(p => p !== ''),
-      targetPaths: allDstPaths.filter(p => p !== ''),
+      mappings:       mappings.map(({ src, dst }) => ({ src, dst })),
+      sourcePaths:    allSrcPaths.filter(p => p !== ''),
+      targetPaths:    allDstPaths.filter(p => p !== ''),
+      originData,
+      originMappings: originMappings.map(({ originId, srcPath }) => ({ originId, srcPath })),
     };
-    const res = await fetch('/api/export/drawio', {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
-    });
+    const res  = await fetch('/api/export/drawio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'mapping.drawio'; a.click();
-    URL.revokeObjectURL(url);
-    setStatus('mapping.drawio exported — open in draw.io / diagrams.net', 'ok');
-  } catch(e) {
-    setStatus('Export error: ' + e.message, 'err');
-  }
+    const a    = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'mapping.drawio'; a.click();
+    URL.revokeObjectURL(a.href);
+    setStatus('mapping.drawio exported — open at diagrams.net', 'ok');
+  } catch(e) { setStatus('Export error: ' + e.message, 'err'); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TRANSFORM / PIPELINE
+// TRANSFORM / PIPELINE  (unchanged from before)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function syncMappingStep() {
   if (mappings.length === 0) return setStatus('No mappings to sync', 'err');
-  // Build mapFields step from current mappings
   const mapping = {};
-  for (const m of mappings) {
-    // Strip [N] array indices from src path for use as a template path
-    const srcPath = m.src.replace(/\[\d+\]\./g, '').replace(/^\[\d+\]/, '');
-    mapping[m.dst] = srcPath;
-  }
-  const existing = steps.findIndex(s => s.type === 'mapFields');
-  if (existing >= 0) steps[existing] = { type: 'mapFields', mapping };
-  else steps.unshift({ type: 'mapFields', mapping });
-  renderSteps();
-  setStatus('Synced mapping step from Map tab', 'ok');
+  for (const m of mappings) mapping[m.dst] = m.src.replace(/\[\d+\]\./g,'').replace(/^\[\d+\]/,'');
+  const idx = steps.findIndex(s => s.type === 'mapFields');
+  if (idx >= 0) steps[idx] = { type:'mapFields', mapping };
+  else steps.unshift({ type:'mapFields', mapping });
+  renderSteps(); setStatus('Synced mapping step from Map tab', 'ok');
 }
 
 function addStep(type) {
   document.getElementById('addMenu').classList.add('hidden');
   const defaults = {
-    mapFields: { type:'mapFields', mapping:{'':{_const:''}} },
-    flatten:   { type:'flatten', separator:'.' },
-    filter:    { type:'filter', conditions:[{field:'',op:'eq',value:''}] },
-    aggregate: { type:'aggregate', groupBy:'', aggregations:[{field:'',op:'sum',as:''}] }
+    mapFields:  { type:'mapFields',  mapping:{'':{_const:''}} },
+    flatten:    { type:'flatten',    separator:'.' },
+    filter:     { type:'filter',     conditions:[{field:'',op:'eq',value:''}] },
+    aggregate:  { type:'aggregate',  groupBy:'', aggregations:[{field:'',op:'sum',as:''}] },
   };
-  steps.push(defaults[type]);
-  renderSteps();
+  steps.push(defaults[type]); renderSteps();
 }
-
 function removeStep(i) { steps.splice(i,1); renderSteps(); }
-function moveStep(i, d) {
-  const j = i + d;
-  if (j < 0 || j >= steps.length) return;
-  [steps[i], steps[j]] = [steps[j], steps[i]];
-  renderSteps();
+function moveStep(i,d)  {
+  const j = i+d; if(j<0||j>=steps.length) return;
+  [steps[i],steps[j]]=[steps[j],steps[i]]; renderSteps();
 }
 
 function renderSteps() {
   const list = document.getElementById('stepList');
-  if (steps.length === 0) {
-    list.innerHTML = '<div class="empty-msg">No steps. Add a step or sync from the Map tab.</div>';
-    return;
-  }
+  if (steps.length === 0) { list.innerHTML = '<div class="empty-msg">No steps. Add one or sync from the Map tab.</div>'; return; }
   list.innerHTML = '';
   steps.forEach((step, i) => {
-    const card = document.createElement('div');
-    card.className = 'step-card';
-    card.innerHTML = `
-      <div class="step-card-head">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="color:var(--muted);font-size:10px;font-family:var(--mono)">${i+1}</span>
-          <span class="step-badge badge-${step.type}">${step.type}</span>
-        </div>
-        <div style="display:flex;gap:2px">
-          ${i > 0 ? `<button class="icon-btn" onclick="moveStep(${i},-1)">↑</button>` : ''}
-          ${i < steps.length-1 ? `<button class="icon-btn" onclick="moveStep(${i},1)">↓</button>` : ''}
-          <button class="icon-btn" onclick="removeStep(${i})">✕</button>
-        </div>
+    const card = document.createElement('div'); card.className = 'step-card';
+    card.innerHTML = `<div class="step-card-head">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="color:var(--muted);font-size:10px;font-family:var(--mono)">${i+1}</span>
+        <span class="step-badge badge-${step.type}">${step.type}</span>
       </div>
-      <div class="step-body" id="sb-${i}"></div>
-    `;
+      <div style="display:flex;gap:2px">
+        ${i>0?`<button class="icon-btn" onclick="moveStep(${i},-1)">↑</button>`:''}
+        ${i<steps.length-1?`<button class="icon-btn" onclick="moveStep(${i},1)">↓</button>`:''}
+        <button class="icon-btn" onclick="removeStep(${i})">✕</button>
+      </div></div>
+      <div class="step-body" id="sb-${i}"></div>`;
     list.appendChild(card);
     renderStepBody(step, i, card.querySelector(`#sb-${i}`));
   });
@@ -1144,54 +1200,41 @@ function renderStepBody(step, idx, el) {
     el.innerHTML = `<label class="small-label">Separator</label>
       <input class="mini-input" style="width:60px" value="${esc(step.separator||'.')}"
         oninput="steps[${idx}].separator=this.value"/>`;
-
   } else if (step.type === 'mapFields') {
     const entries = Object.entries(step.mapping || {});
-    el.innerHTML = `
-      <table class="mini-table">
-        <thead><tr><th>Destination key</th><th></th><th>Source path</th><th></th></tr></thead>
-        <tbody>${entries.map(([d,s],ri) => `<tr>
-          <td><input class="mini-input" value="${esc(d)}" placeholder="dest"
-            oninput="updateMapRow(${idx},${ri},'dst',this.value)"/></td>
-          <td style="text-align:center;color:var(--muted);padding:0 3px">←</td>
-          <td><input class="mini-input" value="${esc(typeof s==='string'?s:s?._const??'')}"
-            placeholder="source path or {f1} {f2}"
-            oninput="updateMapRow(${idx},${ri},'src',this.value)"/></td>
-          <td><button class="icon-btn" onclick="removeMapRow(${idx},${ri})">✕</button></td>
-        </tr>`).join('')}</tbody>
-      </table>
+    el.innerHTML = `<table class="mini-table">
+      <thead><tr><th>Dest key</th><th></th><th>Source path</th><th></th></tr></thead>
+      <tbody>${entries.map(([d,s],ri) => `<tr>
+        <td><input class="mini-input" value="${esc(d)}" placeholder="dest"
+          oninput="updateMapRow(${idx},${ri},'dst',this.value)"/></td>
+        <td style="text-align:center;color:var(--muted);padding:0 3px">←</td>
+        <td><input class="mini-input" value="${esc(typeof s==='string'?s:s?._const??'')}"
+          placeholder="source path" oninput="updateMapRow(${idx},${ri},'src',this.value)"/></td>
+        <td><button class="icon-btn" onclick="removeMapRow(${idx},${ri})">✕</button></td>
+      </tr>`).join('')}</tbody></table>
       <button class="btn btn-ghost" style="margin-top:6px;font-size:11px" onclick="addMapRow(${idx})">+ Row</button>`;
-
   } else if (step.type === 'filter') {
     el.innerHTML = (step.conditions||[]).map((c,ci)=>`
       <div class="row-cond">
-        <input style="flex:2" value="${esc(c.field)}" placeholder="field.path"
-          oninput="steps[${idx}].conditions[${ci}].field=this.value"/>
+        <input style="flex:2" value="${esc(c.field)}" placeholder="field.path" oninput="steps[${idx}].conditions[${ci}].field=this.value"/>
         <select onchange="steps[${idx}].conditions[${ci}].op=this.value">
-          ${['eq','neq','gt','gte','lt','lte','contains','exists','missing'].map(op=>
-            `<option ${c.op===op?'selected':''}>${op}</option>`).join('')}
+          ${['eq','neq','gt','gte','lt','lte','contains','exists','missing'].map(op=>`<option ${c.op===op?'selected':''}>${op}</option>`).join('')}
         </select>
-        <input style="flex:2" value="${esc(String(c.value??''))}" placeholder="value"
-          oninput="steps[${idx}].conditions[${ci}].value=this.value"/>
+        <input style="flex:2" value="${esc(String(c.value??''))}" placeholder="value" oninput="steps[${idx}].conditions[${ci}].value=this.value"/>
         <button class="icon-btn" onclick="steps[${idx}].conditions.splice(${ci},1);renderSteps()">✕</button>
       </div>`).join('')
     + `<button class="btn btn-ghost" style="font-size:11px" onclick="steps[${idx}].conditions.push({field:'',op:'eq',value:''});renderSteps()">+ Condition</button>`;
-
   } else if (step.type === 'aggregate') {
-    el.innerHTML = `
-      <label class="small-label">Group By</label>
-      <input class="mini-input" style="margin-bottom:8px" value="${esc(step.groupBy||'')}" placeholder="field path"
-        oninput="steps[${idx}].groupBy=this.value"/>
+    el.innerHTML = `<label class="small-label">Group By</label>
+      <input class="mini-input" style="margin-bottom:8px" value="${esc(step.groupBy||'')}" placeholder="field path" oninput="steps[${idx}].groupBy=this.value"/>
       <label class="small-label">Aggregations</label>
       ${(step.aggregations||[]).map((a,ai)=>`
         <div class="row-agg">
-          <input style="flex:2" value="${esc(a.field)}" placeholder="field"
-            oninput="steps[${idx}].aggregations[${ai}].field=this.value"/>
+          <input style="flex:2" value="${esc(a.field)}" placeholder="field" oninput="steps[${idx}].aggregations[${ai}].field=this.value"/>
           <select onchange="steps[${idx}].aggregations[${ai}].op=this.value">
             ${['sum','avg','min','max','count'].map(op=>`<option ${a.op===op?'selected':''}>${op}</option>`).join('')}
           </select>
-          <input style="flex:2" value="${esc(a.as||'')}" placeholder="output key"
-            oninput="steps[${idx}].aggregations[${ai}].as=this.value"/>
+          <input style="flex:2" value="${esc(a.as||'')}" placeholder="output key" oninput="steps[${idx}].aggregations[${ai}].as=this.value"/>
           <button class="icon-btn" onclick="steps[${idx}].aggregations.splice(${ai},1);renderSteps()">✕</button>
         </div>`).join('')}
       <button class="btn btn-ghost" style="font-size:11px;margin-top:4px"
@@ -1199,19 +1242,13 @@ function renderStepBody(step, idx, el) {
   }
 }
 
-function updateMapRow(stepIdx, rowIdx, which, value) {
-  const entries = Object.entries(steps[stepIdx].mapping);
-  if (which === 'dst') {
-    const newMapping = {};
-    entries.forEach(([d,s],i) => { newMapping[i===rowIdx ? value : d] = s; });
-    steps[stepIdx].mapping = newMapping;
-  } else {
-    entries[rowIdx][1] = value;
-    steps[stepIdx].mapping = Object.fromEntries(entries);
-  }
+function updateMapRow(si,ri,which,val) {
+  const e=Object.entries(steps[si].mapping);
+  if(which==='dst'){const n={};e.forEach(([d,s],i)=>{n[i===ri?val:d]=s;});steps[si].mapping=n;}
+  else{e[ri][1]=val;steps[si].mapping=Object.fromEntries(e);}
 }
-function addMapRow(stepIdx)       { steps[stepIdx].mapping[''] = ''; renderSteps(); }
-function removeMapRow(stepIdx, ri){ const e=Object.entries(steps[stepIdx].mapping); e.splice(ri,1); steps[stepIdx].mapping=Object.fromEntries(e); renderSteps(); }
+function addMapRow(si) { steps[si].mapping['']='' ; renderSteps(); }
+function removeMapRow(si,ri){ const e=Object.entries(steps[si].mapping);e.splice(ri,1);steps[si].mapping=Object.fromEntries(e);renderSteps(); }
 
 function loadSourceIntoTransform() {
   document.getElementById('tSourceInput').value = JSON.stringify(sourceData, null, 2);
@@ -1223,10 +1260,7 @@ async function runTransform() {
   if (steps.length === 0) return setStatus('Add at least one step', 'err');
   try {
     const source = JSON.parse(srcStr);
-    const res = await fetch('/api/transform', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ source, steps })
-    });
+    const res = await fetch('/api/transform', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ source, steps }) });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
     document.getElementById('tOutputArea').value = JSON.stringify(data.result, null, 2);
@@ -1239,9 +1273,9 @@ async function runTransform() {
 
 function renderLogs(logs) {
   document.getElementById('logArea').innerHTML = logs.map(l => {
-    const cls = l.status==='ok'?'color:var(--green)':l.status==='error'?'color:var(--red)':'color:var(--muted)';
-    const icon = l.status==='ok'?'✓':l.status==='error'?'✗':'○';
-    const extra = l.recordsOut!=null?` → ${l.recordsOut} records`:l.groups!=null?` → ${l.groups} groups`:l.error?`: ${l.error}`:'';
+    const cls  = l.status==='ok' ? 'color:var(--green)' : l.status==='error' ? 'color:var(--red)' : 'color:var(--muted)';
+    const icon = l.status==='ok' ? '✓' : l.status==='error' ? '✗' : '○';
+    const extra = l.recordsOut!=null ? ` → ${l.recordsOut} records` : l.groups!=null ? ` → ${l.groups} groups` : l.error ? `: ${l.error}` : '';
     return `<div style="${cls}">${icon} <b>${l.step}</b>${extra}</div>`;
   }).join('');
 }
@@ -1254,24 +1288,22 @@ function downloadOutput() {
   const v = document.getElementById('tOutputArea').value;
   if (!v) return;
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([v], {type:'application/json'}));
+  a.href = URL.createObjectURL(new Blob([v], { type:'application/json' }));
   a.download = 'output.json'; a.click();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MISC / EVENTS
+// MISC / EVENT LISTENERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function toggleAddMenu() {
-  document.getElementById('addMenu').classList.toggle('hidden');
-}
+function toggleAddMenu() { document.getElementById('addMenu').classList.toggle('hidden'); }
 document.addEventListener('click', e => {
   if (!e.target.closest('.add-menu-wrap')) document.getElementById('addMenu').classList.add('hidden');
 });
 
-// Redraw connections on scroll
-document.getElementById('srcScroll').addEventListener('scroll', () => requestAnimationFrame(drawConnections));
-document.getElementById('dstScroll').addEventListener('scroll', () => requestAnimationFrame(drawConnections));
+document.getElementById('srcScroll').addEventListener('scroll',  () => requestAnimationFrame(drawConnections));
+document.getElementById('dstScroll').addEventListener('scroll',  () => requestAnimationFrame(drawConnections));
+document.getElementById('origScroll').addEventListener('scroll', () => requestAnimationFrame(drawConnections));
 window.addEventListener('resize', () => requestAnimationFrame(drawConnections));
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1282,7 +1314,6 @@ async function init() {
   await reloadFiles();
   await loadTransformation();
 }
-
 init();
 </script>
 </body>

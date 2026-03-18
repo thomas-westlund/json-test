@@ -93,6 +93,11 @@ header {
 .panel-title { font-size: 11px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .panel-dot { width: 8px; height: 8px; border-radius: 50%; }
 .tree-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.search-bar { padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); flex-shrink: 0; }
+.search-input { width: 100%; box-sizing: border-box; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--fg); font-size: 11px; outline: none; }
+.search-input:focus { border-color: var(--accent); }
+.search-highlight { background: #ffe066; color: #000; border-radius: 2px; }
+.search-no-match { display: none !important; }
 
 /* ── Origin table ── */
 .origin-scroll { flex: 1; overflow-y: auto; overflow-x: auto; }
@@ -352,6 +357,9 @@ header {
             onclick="toggleMeta()" title="Show/hide source origin metadata">📋 Origin labels</button>
         </div>
       </div>
+      <div class="search-bar">
+        <input class="search-input" id="srcSearch" type="search" placeholder="Search fields…" oninput="onSearch('src',this.value)">
+      </div>
       <div class="tree-scroll" id="srcScroll">
         <div id="srcTree"><div class="empty-msg">Loading source.json…</div></div>
       </div>
@@ -366,6 +374,9 @@ header {
           <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('dst',true)"  title="Expand all">⊞</button>
           <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('dst',false)" title="Collapse all">⊟</button>
         </div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" id="dstSearch" type="search" placeholder="Search fields…" oninput="onSearch('dst',this.value)">
       </div>
       <div class="tree-scroll" id="dstScroll">
         <div id="dstTree"><div class="empty-msg">Loading target.json…</div></div>
@@ -465,6 +476,7 @@ let steps = [];
 let fieldMeta = {};           // {srcPath: {sourceSystem, sourceField}}
 let showMeta = false;
 let requiredFields = new Set();  // set of dst paths marked as required
+let srcSearchQuery = '', dstSearchQuery = '';
 
 const COLORS = ['#7c74ff','#10dbb4','#ff7096','#faa831','#4d9fff','#f472b6','#22d3ee','#fb923c','#a78bfa','#34d399'];
 let colorCursor = 0;
@@ -512,6 +524,40 @@ function showPage(name) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════════════════════════
+
+function onSearch(side, value) {
+  if (side === 'src') srcSearchQuery = value.trim().toLowerCase();
+  else                dstSearchQuery = value.trim().toLowerCase();
+  renderTree(side === 'src' ? sourceData : targetData, side);
+  requestAnimationFrame(drawConnections);
+}
+
+// Returns true if this node's key or any descendant key/path matches q
+function nodeHasMatch(val, path, q) {
+  if (lastKey(path).toLowerCase().includes(q)) return true;
+  const t = getType(val);
+  if (t === 'object') return Object.entries(val).some(([k, v]) => nodeHasMatch(v, path ? `${path}.${k}` : k, q));
+  if (t === 'array')  return val.some((v, i) => nodeHasMatch(v, path ? `${path}[${i}]` : `[${i}]`, q));
+  return false;
+}
+
+function highlightText(text, q) {
+  if (!q) return document.createTextNode(text);
+  const idx = text.toLowerCase().indexOf(q);
+  if (idx === -1) return document.createTextNode(text);
+  const frag = document.createDocumentFragment();
+  frag.appendChild(document.createTextNode(text.slice(0, idx)));
+  const mark = document.createElement('mark');
+  mark.className = 'search-highlight';
+  mark.textContent = text.slice(idx, idx + q.length);
+  frag.appendChild(mark);
+  frag.appendChild(document.createTextNode(text.slice(idx + q.length)));
+  return frag;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // TREE RENDERING
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -532,8 +578,15 @@ function appendNode(val, path, side, parent, depth) {
   const type        = getType(val);
   const key         = lastKey(path);
   const expandSet   = side === 'src' ? expandedSrc : expandedDst;
-  const isExpanded  = expandSet.has(path);
+  const q           = side === 'src' ? srcSearchQuery : dstSearchQuery;
   const isCollapsible = (type === 'object' || type === 'array');
+
+  // ── Search filter: hide nodes with no matching descendants ───────────────
+  if (q && path !== '' && !nodeHasMatch(val, path, q)) return;
+
+  // When searching, force-expand containers that have matches inside
+  if (q && isCollapsible) expandSet.add(path);
+  const isExpanded  = expandSet.has(path);
 
   const node = document.createElement('div');
   node.className = 'tree-node';
@@ -581,7 +634,7 @@ function appendNode(val, path, side, parent, depth) {
 
   // ── Key label ────────────────────────────────────────────────────────────
   if (key) {
-    const kEl = document.createElement('span'); kEl.className = 'tree-key'; kEl.textContent = key; row.appendChild(kEl);
+    const kEl = document.createElement('span'); kEl.className = 'tree-key'; kEl.appendChild(highlightText(key, q)); row.appendChild(kEl);
     const col = document.createElement('span'); col.className = 'tree-colon'; col.textContent = ':'; row.appendChild(col);
   }
 

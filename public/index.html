@@ -159,6 +159,21 @@ header {
   padding: 0 3px; margin-left: 4px; flex-shrink: 0;
 }
 
+/* Required field badge & toggle */
+.badge-required {
+  font-size: 9px; font-weight: 700; color: var(--red);
+  background: rgba(255,112,150,.12); border: 1px solid rgba(255,112,150,.35);
+  border-radius: 3px; padding: 0 4px; margin-left: 4px; flex-shrink: 0;
+}
+.btn-req {
+  font-size: 9px; background: none; border: 1px solid var(--border);
+  border-radius: 3px; padding: 0 5px; cursor: pointer; color: var(--muted);
+  font-family: var(--font); line-height: 1.5; flex-shrink: 0; margin-left: 4px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.btn-req:hover { border-color: var(--red); color: var(--red); }
+.btn-req.is-required { background: rgba(255,112,150,.15); border-color: var(--red); color: var(--red); }
+
 /* Meta origin inputs (toggled) */
 .meta-sys, .meta-field {
   background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 3px;
@@ -441,6 +456,7 @@ let allDstPaths = [];
 let steps = [];
 let fieldMeta = {};           // {srcPath: {sourceSystem, sourceField}}
 let showMeta = false;
+let requiredFields = new Set();  // set of dst paths marked as required
 
 const COLORS = ['#7c74ff','#10dbb4','#ff7096','#faa831','#4d9fff','#f472b6','#22d3ee','#fb923c','#a78bfa','#34d399'];
 let colorCursor = 0;
@@ -596,6 +612,22 @@ function appendNode(val, path, side, parent, depth) {
         badge.title = 'No source mapping';
         row.appendChild(badge);
       }
+
+      // Required toggle (leaf dst fields only)
+      const isReq = requiredFields.has(path);
+      if (isReq) {
+        const reqBadge = document.createElement('span');
+        reqBadge.className = 'badge-required';
+        reqBadge.textContent = '★ Required';
+        row.appendChild(reqBadge);
+      }
+      const reqBtn = document.createElement('button');
+      reqBtn.className = 'btn-req' + (isReq ? ' is-required' : '');
+      reqBtn.textContent = isReq ? 'Req ✓' : 'Req';
+      reqBtn.title = isReq ? 'Click to unmark as required' : 'Mark as required';
+      reqBtn.addEventListener('click', e => { e.stopPropagation(); toggleRequired(path); });
+      reqBtn.addEventListener('mousedown', e => e.stopPropagation());
+      row.appendChild(reqBtn);
     }
   }
 
@@ -772,27 +804,16 @@ function makeBezier(x1, y1, x2, y2) {
   return `M ${sx} ${y1} C ${cx} ${y1} ${cx} ${y2} ${ex} ${y2}`;
 }
 
-function makeArrowMarker(id, color) {
-  const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-  marker.id = id;
-  marker.setAttribute('markerWidth', '9');
-  marker.setAttribute('markerHeight', '7');
-  marker.setAttribute('refX', '8');
-  marker.setAttribute('refY', '3.5');
-  marker.setAttribute('orient', 'auto');
-  marker.classList.add('conn-marker');
-  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  p.setAttribute('d', 'M0,0 L0,7 L9,3.5 z');
-  p.setAttribute('fill', color);
-  marker.appendChild(p);
-  return marker;
-}
+function drawConn(p1, p2, color, dashed) {
+  const sx = p1.x + DOT_R, sy = p1.y;
+  const ex = p2.x - DOT_R, ey = p2.y;
+  const cx = (sx + ex) / 2;
+  const d  = `M ${sx} ${sy} C ${cx} ${sy} ${cx} ${ey} ${ex} ${ey}`;
 
-function drawConn(p1, p2, color, dashed, markerId) {
-  const d = makeBezier(p1.x, p1.y, p2.x, p2.y);
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.className = 'conn-group';
+  g.setAttribute('class', 'conn-group');
 
+  // Bezier line
   const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   line.setAttribute('d', d);
   line.setAttribute('stroke', color);
@@ -800,8 +821,16 @@ function drawConn(p1, p2, color, dashed, markerId) {
   line.setAttribute('stroke-width', '2');
   line.setAttribute('opacity', '0.88');
   if (dashed) line.setAttribute('stroke-dasharray', '6 3');
-  line.setAttribute('marker-end', `url(#${markerId})`);
+  g.appendChild(line);
 
+  // Arrowhead polygon (no SVG markers — inline so always renders)
+  const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  poly.setAttribute('points', `${ex},${ey} ${ex-9},${ey-4} ${ex-9},${ey+4}`);
+  poly.setAttribute('fill', color);
+  poly.setAttribute('opacity', '0.88');
+  g.appendChild(poly);
+
+  // Invisible wide hit-area for click-to-remove
   const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   hit.setAttribute('d', d);
   hit.setAttribute('stroke', 'transparent');
@@ -809,25 +838,20 @@ function drawConn(p1, p2, color, dashed, markerId) {
   hit.setAttribute('stroke-width', '14');
   hit.style.cursor = 'pointer';
   hit.style.pointerEvents = 'stroke';
-
-  g.appendChild(line);
   g.appendChild(hit);
+
   return { g, hit };
 }
 
 function drawConnections() {
   svg.querySelectorAll('.conn-group').forEach(el => el.remove());
-  svgDefs.querySelectorAll('.conn-marker').forEach(el => el.remove());
 
   // ── Origin → Source (dashed) ──
   for (const om of originMappings) {
     const p1 = dotCenter(dotEl('origin', om.originId));
     const p2 = dotCenter(dotEl('src-left', om.srcPath));
     if (!p1 || !p2) continue;
-
-    const mId = 'am_' + om.id;
-    svgDefs.appendChild(makeArrowMarker(mId, om.color));
-    const { g, hit } = drawConn(p1, p2, om.color, true, mId);
+    const { g, hit } = drawConn(p1, p2, om.color, true);
     hit.addEventListener('click', () => removeOriginMapping(om.id));
     svg.appendChild(g);
   }
@@ -837,10 +861,7 @@ function drawConnections() {
     const p1 = dotCenter(dotEl('src', m.src));
     const p2 = dotCenter(dotEl('dst', m.dst));
     if (!p1 || !p2) continue;
-
-    const mId = 'sm_' + m.id;
-    svgDefs.appendChild(makeArrowMarker(mId, m.color));
-    const { g, hit } = drawConn(p1, p2, m.color, false, mId);
+    const { g, hit } = drawConn(p1, p2, m.color, false);
     hit.addEventListener('click', () => removeMapping(m.id));
     svg.appendChild(g);
   }
@@ -955,6 +976,14 @@ function toggleMeta() {
   btn.style.background = showMeta ? 'var(--accent)' : '';
   btn.style.color      = showMeta ? '#fff' : '';
   renderTree(sourceData, 'src');
+  requestAnimationFrame(drawConnections);
+}
+
+// ── Required field toggle ─────────────────────────────────────────────────
+function toggleRequired(path) {
+  if (requiredFields.has(path)) requiredFields.delete(path);
+  else requiredFields.add(path);
+  renderTree(targetData, 'dst');
   requestAnimationFrame(drawConnections);
 }
 
@@ -1094,6 +1123,7 @@ async function loadTransformation() {
     originMappings = (tRes.originMappings || []).map(m => ({ ...m, color: m.color || nextColor() }));
     steps          = tRes.steps    || [];
     fieldMeta      = tRes.fieldMeta || {};
+    requiredFields = new Set(tRes.requiredFields || []);
     if (Array.isArray(oRes.data)) originData = oRes.data;
 
     colorCursor = mappings.length + originMappings.length;
@@ -1114,6 +1144,7 @@ async function saveTransformation() {
       originMappings: originMappings.map(({ id, originId, srcPath, color }) => ({ id, originId, srcPath, color })),
       steps,
       fieldMeta,
+      requiredFields: [...requiredFields],
     };
     const [tRes, oRes] = await Promise.all([
       fetch('/api/transformation', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),

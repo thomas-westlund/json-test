@@ -817,23 +817,30 @@ function uploadFile(side) {
 function handleUpload(e, side) {
   const file = e.target.files[0];
   if (!file) return;
+  setStatus(`Reading ${file.name}…`);
+  const endpoint = side === 'src' ? 'source' : 'target';
   const reader = new FileReader();
+  reader.onerror = () => setStatus('Failed to read file', 'err');
   reader.onload = async (ev) => {
     try {
-      const data = JSON.parse(ev.target.result);
-      const res = await fetch(`/api/${side === 'src' ? 'source' : 'target'}`, {
+      let data;
+      try { data = JSON.parse(ev.target.result); }
+      catch (pe) { setStatus('Invalid JSON: ' + pe.message, 'err'); return; }
+      const res = await fetch('/api/' + endpoint, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ data })
       });
-      if (!res.ok) throw new Error('Save failed');
-      setStatus(`${file.name} saved`, 'ok');
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || 'Server error');
+      setStatus(`${file.name} saved as ${endpoint}.json`, 'ok');
       await reloadFiles();
     } catch(err) {
       setStatus('Upload error: ' + err.message, 'err');
+    } finally {
+      e.target.value = ''; // reset after read is complete so the same file can be re-uploaded
     }
   };
   reader.readAsText(file);
-  e.target.value = '';
 }
 
 async function loadTransformation() {

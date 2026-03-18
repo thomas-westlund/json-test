@@ -612,23 +612,25 @@ function appendNode(val, path, side, parent, depth) {
         badge.title = 'No source mapping';
         row.appendChild(badge);
       }
-
-      // Required toggle (leaf dst fields only)
-      const isReq = requiredFields.has(path);
-      if (isReq) {
-        const reqBadge = document.createElement('span');
-        reqBadge.className = 'badge-required';
-        reqBadge.textContent = '★ Required';
-        row.appendChild(reqBadge);
-      }
-      const reqBtn = document.createElement('button');
-      reqBtn.className = 'btn-req' + (isReq ? ' is-required' : '');
-      reqBtn.textContent = isReq ? 'Req ✓' : 'Req';
-      reqBtn.title = isReq ? 'Click to unmark as required' : 'Mark as required';
-      reqBtn.addEventListener('click', e => { e.stopPropagation(); toggleRequired(path); });
-      reqBtn.addEventListener('mousedown', e => e.stopPropagation());
-      row.appendChild(reqBtn);
     }
+  }
+
+  // ── Required toggle — ALL dst nodes (leaves AND collapsible) ─────────────
+  if (side === 'dst') {
+    const isReq = requiredFields.has(path);
+    if (isReq) {
+      const reqBadge = document.createElement('span');
+      reqBadge.className = 'badge-required';
+      reqBadge.textContent = '★ Required';
+      row.appendChild(reqBadge);
+    }
+    const reqBtn = document.createElement('button');
+    reqBtn.className = 'btn-req' + (isReq ? ' is-required' : '');
+    reqBtn.textContent = isReq ? 'Req ✓' : 'Req';
+    reqBtn.title = isReq ? 'Click to unmark as required' : 'Mark as required';
+    reqBtn.addEventListener('click', e => { e.stopPropagation(); toggleRequired(path); });
+    reqBtn.addEventListener('mousedown', e => e.stopPropagation());
+    row.appendChild(reqBtn);
   }
 
   // ── Right edge: src drag-out dot ─────────────────────────────────────────
@@ -1164,6 +1166,7 @@ async function exportDrawio() {
       targetPaths:    allDstPaths.filter(p => p !== ''),
       originData,
       originMappings: originMappings.map(({ originId, srcPath }) => ({ originId, srcPath })),
+      requiredFields: [...requiredFields],
     };
     const res  = await fetch('/api/export/drawio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const blob = await res.blob();

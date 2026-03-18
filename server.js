@@ -67,8 +67,8 @@ app.post('/api/transformation', (req, res) => {
 
 app.post('/api/export/drawio', (req, res) => {
   const { mappings = [], sourcePaths = [], targetPaths = [],
-          originData = [], originMappings = [] } = req.body;
-  const xml = generateDrawioXML(mappings, sourcePaths, targetPaths, originData, originMappings);
+          originData = [], originMappings = [], requiredFields = [] } = req.body;
+  const xml = generateDrawioXML(mappings, sourcePaths, targetPaths, originData, originMappings, requiredFields);
   res.setHeader('Content-Type', 'application/xml');
   res.setHeader('Content-Disposition', 'attachment; filename="mapping.drawio"');
   res.send(xml);
@@ -80,27 +80,48 @@ function escXml(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
-function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], originMappings = []) {
-  const ROW_H   = 26;
-  const HDR_H   = 34;
-  const COL_W   = 230;
-  const GAP     = 130;
+function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], originMappings = [], requiredFields = []) {
+  const ROW_H   = 28;
+  const HDR_H   = 36;
   const START_Y = 60;
 
-  const origX = 50;
-  const srcX  = origX + COL_W + GAP;   // 410
-  const dstX  = srcX  + COL_W + GAP;   // 770
-
-  const san  = s => 'id_' + String(s).replace(/[^a-zA-Z0-9]/g, '_');
-  const row  = (id, val, y, fill, stroke, parent) =>
-    `<mxCell id="${id}" value="${escXml(val)}" style="text;align=left;verticalAlign=middle;spacingLeft=8;fontSize=11;fontFamily=Courier New;fillColor=${fill};strokeColor=${stroke};" vertex="1" parent="${parent}"><mxGeometry y="${y}" width="${COL_W}" height="${ROW_H}" as="geometry"/></mxCell>`;
+  const reqSet = new Set(requiredFields);
 
   const srcFields = [...new Set([...sourcePaths, ...mappings.map(m => m.src)])];
   const dstFields = [...new Set([...targetPaths, ...mappings.map(m => m.dst)])];
 
+  // ── Dynamic column width: fit the longest label ──────────────────────────
+  // Origin labels = "System / Table / Field"  (+ optional " ★ required" suffix is dst only)
+  const CHARS_PER_PX = 6.8;  // approx width of monospace 11px char
+  const PADDING      = 40;   // spacingLeft + right margin
+  const origLabels = originData.map(r => [r.sourceSystem, r.table, r.field].filter(Boolean).join(' / ') || '(empty)');
+  const dstLabels  = dstFields.map(f => reqSet.has(f) ? f + '  ★ required' : f);
+  const allLabels  = [...origLabels, ...srcFields, ...dstLabels];
+  const maxChars   = Math.max(20, ...allLabels.map(l => l.length));
+  const COL_W      = Math.max(260, Math.ceil(maxChars * CHARS_PER_PX) + PADDING);
+
+  // ── Gaps: 50% wider than the former 130px baseline ───────────────────────
+  const GAP   = 195;
+
+  const origX = 50;
+  const srcX  = origX + COL_W + GAP;
+  const dstX  = srcX  + COL_W + GAP;
+
+  const san = s => 'id_' + String(s).replace(/[^a-zA-Z0-9]/g, '_');
+
+  const row = (id, val, y, fill, stroke, extra, parent) => {
+    const style = [
+      'text', 'align=left', 'verticalAlign=middle', 'spacingLeft=8',
+      'fontSize=11', 'fontFamily=Courier New',
+      `fillColor=${fill}`, `strokeColor=${stroke}`,
+      extra,
+    ].filter(Boolean).join(';');
+    return `<mxCell id="${id}" value="${escXml(val)}" style="${style};" vertex="1" parent="${parent}"><mxGeometry y="${y}" width="${COL_W}" height="${ROW_H}" as="geometry"/></mxCell>`;
+  };
+
   const origH = HDR_H + Math.max(originData.length, 1) * ROW_H;
-  const srcH  = HDR_H + Math.max(srcFields.length, 1) * ROW_H;
-  const dstH  = HDR_H + Math.max(dstFields.length, 1) * ROW_H;
+  const srcH  = HDR_H + Math.max(srcFields.length,  1) * ROW_H;
+  const dstH  = HDR_H + Math.max(dstFields.length,  1) * ROW_H;
 
   let cells = '';
 
@@ -108,9 +129,10 @@ function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], 
   if (originData.length > 0) {
     cells += `<mxCell id="orig_box" value="Origin" style="swimlane;startSize=${HDR_H};fillColor=#ecebff;strokeColor=#7b68ee;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${origX}" y="${START_Y}" width="${COL_W}" height="${origH}" as="geometry"/></mxCell>`;
     originData.forEach((r, i) => {
-      const label = [r.sourceSystem, r.table, r.field].filter(Boolean).join(' / ') || '(empty)';
+      const label  = origLabels[i];
       const mapped = originMappings.some(m => m.originId === r.id);
-      cells += row(`orig_${i}`, label, HDR_H + i * ROW_H, mapped ? '#d5e8d4' : 'none', '#7b68ee', 'orig_box');
+      cells += row(`orig_${i}`, label, HDR_H + i * ROW_H,
+        mapped ? '#d5e8d4' : 'none', '#7b68ee', '', 'orig_box');
     });
   }
 
@@ -118,14 +140,26 @@ function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], 
   cells += `<mxCell id="src_box" value="Source (source.json)" style="swimlane;startSize=${HDR_H};fillColor=#dde8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${srcX}" y="${START_Y}" width="${COL_W}" height="${srcH}" as="geometry"/></mxCell>`;
   srcFields.forEach((f, i) => {
     const mapped = mappings.some(m => m.src === f) || originMappings.some(m => m.srcPath === f);
-    cells += row(`src_${san(f)}_${i}`, f, HDR_H + i * ROW_H, mapped ? '#d5e8d4' : 'none', '#6c8ebf', 'src_box');
+    cells += row(`src_${san(f)}_${i}`, f, HDR_H + i * ROW_H,
+      mapped ? '#d5e8d4' : 'none', '#6c8ebf', '', 'src_box');
   });
 
   // ── Target swimlane ──
   cells += `<mxCell id="dst_box" value="Target (target.json)" style="swimlane;startSize=${HDR_H};fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="${dstX}" y="${START_Y}" width="${COL_W}" height="${dstH}" as="geometry"/></mxCell>`;
   dstFields.forEach((f, i) => {
-    const mapped = mappings.some(m => m.dst === f);
-    cells += row(`dst_${san(f)}_${i}`, f, HDR_H + i * ROW_H, mapped ? '#d5e8d4' : 'none', '#82b366', 'dst_box');
+    const mapped   = mappings.some(m => m.dst === f);
+    const required = reqSet.has(f);
+    // Label: append annotation tags
+    let label = f;
+    if (!mapped)   label += '  ⚠ unmapped';
+    if (required)  label += '  ★ required';
+    // Fill: required-unmapped = pale red, required-mapped = pale gold, unmapped = pale orange, mapped = pale green
+    let fill   = mapped ? '#d5e8d4' : '#fff2cc';        // green or yellow
+    let stroke = '#82b366';
+    let extra  = '';
+    if (required && mapped)   { fill = '#ffe6cc'; stroke = '#d6b656'; }  // gold
+    if (required && !mapped)  { fill = '#ffd7d7'; stroke = '#ae4132'; extra = 'fontStyle=1'; }  // red, bold
+    cells += row(`dst_${san(f)}_${i}`, label, HDR_H + i * ROW_H, fill, stroke, extra, 'dst_box');
   });
 
   // ── Origin → Source edges (dashed) ──
@@ -144,7 +178,8 @@ function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], 
     cells += `<mxCell id="se_${i}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;strokeColor=#6c63ff;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="src_${san(m.src)}_${si}" target="dst_${san(m.dst)}_${di}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
   });
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/>${cells}</root></mxGraphModel>`;
+  const totalW = dstX + COL_W + 50;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="${totalW}" pageHeight="1169" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/>${cells}</root></mxGraphModel>`;
 }
 
 // ── Existing pipeline endpoints ─────────────────────────────────────────────

@@ -167,7 +167,7 @@ function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], 
     const origIdx = originData.findIndex(r => r.id === om.originId);
     const srcIdx  = srcFields.indexOf(om.srcPath);
     if (origIdx === -1 || srcIdx === -1) return;
-    cells += `<mxCell id="oe_${i}" style="curved=1;rounded=1;dashed=1;strokeColor=#7b68ee;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="orig_${origIdx}" target="src_${san(srcFields[srcIdx])}_${srcIdx}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+    cells += `<mxCell id="oe_${i}" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=1;dashed=1;strokeColor=#7b68ee;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="orig_${origIdx}" target="src_${san(srcFields[srcIdx])}_${srcIdx}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
   });
 
   // ── Source → Target edges (solid) ──
@@ -175,7 +175,7 @@ function generateDrawioXML(mappings, sourcePaths, targetPaths, originData = [], 
     const si = srcFields.indexOf(m.src);
     const di = dstFields.indexOf(m.dst);
     if (si === -1 || di === -1) return;
-    cells += `<mxCell id="se_${i}" style="curved=1;rounded=1;strokeColor=#6c63ff;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="src_${san(m.src)}_${si}" target="dst_${san(m.dst)}_${di}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+    cells += `<mxCell id="se_${i}" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=1;strokeColor=#6c63ff;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="src_${san(m.src)}_${si}" target="dst_${san(m.dst)}_${di}" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>`;
   });
 
   const totalW = dstX + COL_W + 50;

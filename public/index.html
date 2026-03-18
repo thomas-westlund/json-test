@@ -342,8 +342,10 @@ header {
     <div class="tree-panel">
       <div class="panel-header">
         <span class="panel-title"><span class="panel-dot" style="background:var(--accent)"></span>source.json</span>
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:6px">
           <span id="srcInfo" style="font-size:11px;color:var(--muted)"></span>
+          <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('src',true)"  title="Expand all">⊞</button>
+          <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('src',false)" title="Collapse all">⊟</button>
           <button class="btn btn-ghost" id="metaToggleBtn" style="padding:2px 8px;font-size:11px"
             onclick="toggleMeta()" title="Show/hide source origin metadata">📋 Origin labels</button>
         </div>
@@ -357,7 +359,11 @@ header {
     <div class="tree-panel">
       <div class="panel-header">
         <span class="panel-title"><span class="panel-dot" style="background:var(--green)"></span>target.json</span>
-        <span id="dstInfo" style="font-size:11px;color:var(--muted)"></span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="dstInfo" style="font-size:11px;color:var(--muted)"></span>
+          <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('dst',true)"  title="Expand all">⊞</button>
+          <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('dst',false)" title="Collapse all">⊟</button>
+        </div>
       </div>
       <div class="tree-scroll" id="dstScroll">
         <div id="dstTree"><div class="empty-msg">Loading target.json…</div></div>
@@ -692,6 +698,23 @@ function lastKey(path) {
   const m = path.match(/\.?([^.\[]+)(?:\[(\d+)\])?$|(\[(\d+)\])$/);
   if (!m) return path;
   return m[2] != null ? `[${m[2]}]` : m[1] || `[${m[4]}]`;
+}
+
+function expandCollapseAll(side, expand) {
+  const data = side === 'src' ? sourceData : targetData;
+  const s    = side === 'src' ? expandedSrc : expandedDst;
+  if (!data) return;
+  function walk(val, path) {
+    const t = getType(val);
+    if (t === 'object' || t === 'array') {
+      if (expand) s.add(path); else s.delete(path);
+      if (t === 'object') Object.entries(val).forEach(([k, v]) => walk(v, path ? `${path}.${k}` : k));
+      else                val.forEach((v, i) => walk(v, path ? `${path}[${i}]` : `[${i}]`));
+    }
+  }
+  walk(data, '');
+  renderTree(data, side);
+  requestAnimationFrame(drawConnections);
 }
 
 function toggleNode(path, side) {

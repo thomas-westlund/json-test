@@ -120,6 +120,7 @@ header {
 .tree-type.array  { color: var(--yellow); border-color: rgba(245,158,11,.3); }
 .tree-type.object { color: var(--blue);   border-color: rgba(59,130,246,.3); }
 .tree-more { font-size: 11px; color: var(--muted); font-style: italic; padding: 3px 6px; }
+.src-preview { font-size: 11px; font-family: var(--mono); opacity: .8; margin-left: 6px; white-space: nowrap; flex-shrink: 0; }
 
 /* ── Port dots ── */
 .port-dot {
@@ -400,6 +401,18 @@ function setStatus(msg, type = '') {
 
 function uid() { return Math.random().toString(36).slice(2, 9); }
 
+function getValueAtPath(data, path) {
+  if (data == null || path === '' || path == null) return data;
+  // Normalise: [0].foo  →  0.foo  then split on "."
+  const parts = path.replace(/\[(\d+)\]/g, '.$1').replace(/^\./, '').split('.');
+  let cur = data;
+  for (const p of parts) {
+    if (cur == null) return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
 function nextColor() {
   const c = COLORS[colorCursor % COLORS.length];
   colorCursor++;
@@ -497,6 +510,23 @@ function appendNode(val, path, side, parent, depth) {
     valEl.textContent = display.length > 50 ? display.slice(0, 50) + '…' : display;
     valEl.title = display;
     row.appendChild(valEl);
+
+    // For target fields: show example value pulled from source via active mapping
+    if (side === 'dst') {
+      const m = mappings.find(m => m.dst === path);
+      if (m && sourceData != null) {
+        const srcVal = getValueAtPath(sourceData, m.src);
+        if (srcVal !== undefined && srcVal !== null) {
+          const preview = document.createElement('span');
+          preview.className = 'src-preview';
+          preview.style.color = m.color;
+          const pStr = String(srcVal);
+          preview.textContent = '← ' + (pStr.length > 28 ? pStr.slice(0, 28) + '…' : pStr);
+          preview.title = 'Example value from: ' + m.src;
+          row.appendChild(preview);
+        }
+      }
+    }
   }
 
   // Append dot — target: before toggle, source: after value (right side)
@@ -666,9 +696,7 @@ function startDrag(e, srcPath) {
   tempLine.style.display = '';
   tempLine.setAttribute('d', `M ${p.x} ${p.y} L ${p.x} ${p.y}`);
 
-  // Enable pointer events on svg so we receive events
-  svg.style.pointerEvents = 'all';
-
+  // SVG stays pointer-events:none so mouse events reach underlying HTML elements
   document.addEventListener('mousemove', onDragMove);
   document.addEventListener('mouseup', onDragEnd);
 }
@@ -678,12 +706,9 @@ function onDragMove(e) {
   const { x0, y0 } = dragState;
   tempLine.setAttribute('d', makeBezier(x0, y0, e.clientX, e.clientY));
 
-  // Highlight potential drop target
-  svg.style.pointerEvents = 'none'; // temporarily disable to hit underlying elements
-  const el = document.elementFromPoint(e.clientX, e.clientY);
-  svg.style.pointerEvents = 'all';
-
+  // SVG is pointer-events:none so elementFromPoint sees the HTML dot elements directly
   document.querySelectorAll('.port-dot.dst').forEach(d => d.classList.remove('drop-hover'));
+  const el = document.elementFromPoint(e.clientX, e.clientY);
   if (el?.classList.contains('port-dot') && el.dataset.side === 'dst') {
     el.classList.add('drop-hover');
   }
@@ -696,14 +721,9 @@ function onDragEnd(e) {
 
   tempLine.style.display = 'none';
   tempLine.setAttribute('d', '');
-  svg.style.pointerEvents = 'none';
-
   document.querySelectorAll('.port-dot.dst.drop-hover').forEach(d => d.classList.remove('drop-hover'));
 
-  // Find drop target
-  svg.style.pointerEvents = 'none';
   const el = document.elementFromPoint(e.clientX, e.clientY);
-
   if (el?.classList.contains('port-dot') && el.dataset.side === 'dst') {
     addMapping(dragState.srcPath, el.dataset.path);
   }
@@ -715,25 +735,27 @@ function onDragEnd(e) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function addMapping(src, dst) {
-  // Remove existing mapping for this dst (one-to-one)
   mappings = mappings.filter(m => m.dst !== dst);
   mappings.push({ id: uid(), src, dst, color: nextColor() });
   renderMappingBar();
-  drawConnections();
+  renderTree(targetData, 'dst');  // refresh to show source value preview
+  requestAnimationFrame(drawConnections);
   setStatus(`Mapped ${src} → ${dst}`, 'ok');
 }
 
 function removeMapping(id) {
   mappings = mappings.filter(m => m.id !== id);
   renderMappingBar();
-  drawConnections();
+  renderTree(targetData, 'dst');  // refresh to clear source value preview
+  requestAnimationFrame(drawConnections);
 }
 
 function clearMappings() {
   mappings = [];
   colorCursor = 0;
   renderMappingBar();
-  drawConnections();
+  renderTree(targetData, 'dst');
+  requestAnimationFrame(drawConnections);
   setStatus('Mappings cleared');
 }
 

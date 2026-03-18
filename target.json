@@ -1,0 +1,10 @@
+{
+  "customer_id": 0,
+  "full_name": "",
+  "email_address": "",
+  "amount": 0.0,
+  "item_count": 0,
+  "currency": "",
+  "area": "",
+  "is_active": false
+}

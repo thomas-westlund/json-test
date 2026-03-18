@@ -1,547 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JSON ETL Studio</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JSON ETL Studio</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1d2e;
-      --surface2: #232640;
-      --border: #2e3156;
-      --accent: #6c63ff;
-      --accent2: #00d4aa;
-      --accent3: #ff6584;
-      --text: #e2e8f0;
-      --text-muted: #8892a4;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --error: #ef4444;
-      --radius: 10px;
-      --font: 'Segoe UI', system-ui, sans-serif;
-      --mono: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-    }
+:root {
+  --bg:       #0f1117;
+  --surface:  #1a1d2e;
+  --surface2: #232640;
+  --border:   #2e3156;
+  --accent:   #6c63ff;
+  --green:    #00d4aa;
+  --red:      #ff6584;
+  --yellow:   #f59e0b;
+  --blue:     #3b82f6;
+  --pink:     #ec4899;
+  --text:     #e2e8f0;
+  --muted:    #8892a4;
+  --radius:   8px;
+  --font:     'Segoe UI', system-ui, sans-serif;
+  --mono:     'Cascadia Code', 'Fira Code', Consolas, monospace;
+}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+body { background: var(--bg); color: var(--text); font-family: var(--font); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* ── Header ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 56px;
-      flex-shrink: 0;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-    .logo-icon {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-    }
-    .badge {
-      font-size: 11px;
-      font-weight: 600;
-      background: var(--accent);
-      color: #fff;
-      padding: 2px 8px;
-      border-radius: 20px;
-      letter-spacing: 0.5px;
-    }
+/* ── Header ── */
+header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 16px; display: flex; align-items: center; gap: 12px;
+  height: 52px; flex-shrink: 0; z-index: 10;
+}
+.logo { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; margin-right: 8px; }
+.logo-icon { width: 30px; height: 30px; background: linear-gradient(135deg, var(--accent), var(--green)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.sep { width: 1px; height: 24px; background: var(--border); }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 6px; border: none;
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: opacity .15s, transform .1s;
+}
+.btn:hover { opacity: .82; } .btn:active { transform: scale(.96); }
+.btn-ghost  { background: var(--border); color: var(--text); }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-green  { background: var(--green);  color: #0f1117; }
+.btn-yellow { background: var(--yellow); color: #0f1117; }
+.btn-run {
+  background: linear-gradient(135deg, var(--accent), var(--green));
+  color: #fff; padding: 6px 16px; font-size: 13px; font-weight: 700;
+  border-radius: 7px; border: none; cursor: pointer; font-family: var(--font);
+  box-shadow: 0 2px 12px rgba(108,99,255,.4);
+  transition: opacity .15s, box-shadow .15s;
+}
+.btn-run:hover { opacity: .9; box-shadow: 0 2px 18px rgba(108,99,255,.6); }
 
-    /* ── Layout ── */
-    main {
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      grid-template-rows: auto 1fr auto;
-      gap: 0;
-      flex: 1;
-      overflow: hidden;
-    }
+/* ── Tabs ── */
+.tabs { display: flex; gap: 2px; background: var(--bg); border-radius: 6px; padding: 2px; margin-left: auto; }
+.tab { padding: 4px 14px; border-radius: 4px; border: none; background: transparent; color: var(--muted); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.tab.active { background: var(--surface2); color: var(--text); }
 
-    /* ── Panels ── */
-    .panel {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--surface);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .panel-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: var(--surface2);
-      flex-shrink: 0;
-    }
-    .panel-title {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .panel-title .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-    }
-    .dot-blue  { background: var(--accent); }
-    .dot-green { background: var(--accent2); }
-    .dot-red   { background: var(--accent3); }
-    .dot-yellow{ background: var(--warning); }
+/* ── Status ── */
+#statusBar { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; background: var(--muted); }
+.status-dot.ok { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.status-dot.err { background: var(--red); }
 
-    /* ── App layout grid ── */
-    .app-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 280px 1fr;
-      gap: 12px;
-      padding: 12px;
-      overflow: hidden;
-      flex: 1;
-    }
-    .right-sidebar {
-      padding: 12px 12px 12px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overflow-y: auto;
-    }
-    .output-row {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      min-height: 0;
-    }
+/* ── Pages ── */
+.page { flex: 1; overflow: hidden; display: none; }
+.page.active { display: flex; }
 
-    /* ── Textareas ── */
-    textarea {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.6;
-      padding: 12px;
-      resize: none;
-      outline: none;
-      width: 100%;
-    }
-    textarea::placeholder { color: var(--text-muted); }
-    .textarea-wrap {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+/* ── MAP PAGE ── */
+#mapPage { flex-direction: column; }
+.map-main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
 
-    /* ── Buttons ── */
-    btn, button { cursor: pointer; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 6px;
-      border: none;
-      font-family: var(--font);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-    .btn:hover { opacity: 0.85; }
-    .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-success { background: var(--accent2); color: #0f1117; }
-    .btn-danger  { background: var(--accent3); color: #fff; }
-    .btn-ghost   { background: var(--border); color: var(--text); }
-    .btn-run {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
-      padding: 10px 24px;
-      font-size: 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-family: var(--font);
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-      box-shadow: 0 4px 20px rgba(108,99,255,0.35);
-    }
-    .btn-run:hover { opacity: 0.9; box-shadow: 0 4px 28px rgba(108,99,255,0.5); }
-    .btn-run:active { transform: scale(0.97); }
+.tree-panel {
+  display: flex; flex-direction: column; border: 1px solid var(--border);
+  border-top: none; overflow: hidden;
+}
+.tree-panel:first-child { border-left: none; border-right: none; }
+.tree-panel:last-child  { border-right: none; }
 
-    /* ── Steps / Pipeline ── */
-    .step-list { display: flex; flex-direction: column; gap: 8px; }
-    .step-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .step-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .step-card-header:hover { background: rgba(255,255,255,0.03); }
-    .step-type-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-    .badge-flatten   { background: rgba(108,99,255,0.2); color: var(--accent); }
-    .badge-mapfields { background: rgba(0,212,170,0.2);  color: var(--accent2); }
-    .badge-filter    { background: rgba(245,158,11,0.2); color: var(--warning); }
-    .badge-aggregate { background: rgba(255,101,132,0.2);color: var(--accent3); }
+.panel-header {
+  padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.panel-title { font-size: 11px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.panel-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-    .step-body { padding: 10px 12px; border-top: 1px solid var(--border); }
+.tree-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
 
-    /* mapping table */
-    .mapping-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .mapping-table th {
-      text-align: left; padding: 4px 6px;
-      color: var(--text-muted); font-size: 11px;
-      border-bottom: 1px solid var(--border);
-    }
-    .mapping-table td { padding: 4px 4px; }
-    .mapping-table input[type=text] {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 3px 6px;
-      width: 100%;
-      outline: none;
-    }
-    .mapping-table input[type=text]:focus { border-color: var(--accent); }
-    .mapping-table select {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-size: 11px;
-      padding: 3px 4px;
-      outline: none;
-    }
+/* ── Tree nodes ── */
+.tree-node { position: relative; }
+.tree-row {
+  display: flex; align-items: center; gap: 4px;
+  min-height: 28px; padding: 2px 6px 2px 4px;
+  position: relative; user-select: none;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.tree-row:hover { background: rgba(255,255,255,.03); }
 
-    /* condition rows */
-    .condition-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
-    .condition-row input, .condition-row select {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 3px 6px;
-      outline: none;
-    }
-    .condition-row input:focus, .condition-row select:focus { border-color: var(--accent); }
-    .condition-row .field-in { flex: 2; }
-    .condition-row .op-in    { flex: 1; }
-    .condition-row .val-in   { flex: 2; }
+.toggle-btn {
+  background: none; border: none; color: var(--muted); font-size: 9px;
+  cursor: pointer; width: 16px; height: 16px; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; border-radius: 3px; padding: 0;
+}
+.toggle-btn:hover { color: var(--text); background: var(--border); }
+.spacer { width: 16px; flex-shrink: 0; }
 
-    /* agg rows */
-    .agg-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
-    .agg-row input, .agg-row select {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 3px 6px;
-      outline: none;
-    }
+.tree-key { font-family: var(--mono); font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.tree-colon { color: var(--muted); font-size: 12px; margin: 0 2px; flex-shrink: 0; }
+.tree-val { font-family: var(--mono); font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-val.string { color: var(--green); }
+.tree-val.number { color: var(--yellow); }
+.tree-val.boolean { color: var(--red); }
+.tree-val.null    { color: var(--muted); font-style: italic; }
+.tree-type { font-size: 10px; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font-family: var(--mono); flex-shrink: 0; }
+.tree-type.array  { color: var(--yellow); border-color: rgba(245,158,11,.3); }
+.tree-type.object { color: var(--blue);   border-color: rgba(59,130,246,.3); }
+.tree-more { font-size: 11px; color: var(--muted); font-style: italic; padding: 3px 6px; }
 
-    /* ── Add step dropdown ── */
-    .add-step-wrap { position: relative; display: inline-block; }
-    .add-step-menu {
-      position: absolute;
-      top: calc(100% + 4px);
-      left: 0;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      min-width: 180px;
-      z-index: 100;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
-    .add-step-menu button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      padding: 9px 14px;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 13px;
-      text-align: left;
-      cursor: pointer;
-    }
-    .add-step-menu button:hover { background: rgba(255,255,255,0.05); }
+/* ── Port dots ── */
+.port-dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--surface2); border: 2px solid var(--border);
+  flex-shrink: 0; transition: background .15s, border-color .15s, transform .1s;
+  position: relative; z-index: 5;
+}
+.port-dot.src { cursor: crosshair; margin-left: auto; }
+.port-dot.dst { cursor: default; margin-right: 4px; }
+.port-dot:hover { transform: scale(1.3); }
+.port-dot.src:hover { border-color: var(--green); background: rgba(0,212,170,.2); }
+.port-dot.dst.drop-hover { border-color: var(--green); background: var(--green); transform: scale(1.4); }
+.port-dot.connected { border-width: 2px; }
 
-    /* ── Logs ── */
-    .log-entry {
-      font-size: 11px;
-      font-family: var(--mono);
-      padding: 4px 8px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .log-ok    { color: var(--success); background: rgba(34,197,94,0.08); }
-    .log-error { color: var(--error);   background: rgba(239,68,68,0.08); }
-    .log-skip  { color: var(--text-muted); }
+/* ── Mapping bar ── */
+.mapping-bar {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 6px 12px; display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; min-height: 40px; flex-shrink: 0;
+}
+.mapping-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 5px; padding: 3px 8px; font-size: 11px; font-family: var(--mono);
+  max-width: 360px;
+}
+.mapping-chip .src-path { color: var(--accent); }
+.mapping-chip .arrow { color: var(--muted); }
+.mapping-chip .dst-path { color: var(--green); }
+.mapping-chip .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 2px; line-height: 1; }
+.mapping-chip .del-btn:hover { color: var(--red); }
+.mapping-empty { color: var(--muted); font-size: 12px; font-style: italic; }
 
-    /* ── Status bar ── */
-    .status-bar {
-      grid-column: 1 / -1;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 6px 16px;
-      font-size: 11px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-shrink: 0;
-    }
-    .status-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--text-muted);
-    }
-    .status-dot.ok { background: var(--success); box-shadow: 0 0 6px var(--success); }
-    .status-dot.error { background: var(--error); }
+/* ── SVG overlay ── */
+#svgOverlay {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: 100;
+}
+.conn-line { fill: none; stroke-width: 2; opacity: .85; }
+.conn-line-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
+#tempLine { fill: none; stroke: #fff; stroke-width: 1.5; stroke-dasharray: 5; opacity: .5; }
 
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* ── TRANSFORM PAGE ── */
+#transformPage { flex-direction: row; gap: 0; }
+.transform-left  { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow: hidden; }
+.transform-right { width: 300px; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* ── Misc ── */
-    .small-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
-      text-transform: uppercase; color: var(--text-muted);
-      margin-bottom: 4px; display: block;
-    }
-    .inline-input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 12px;
-      padding: 4px 8px;
-      outline: none;
-    }
-    .inline-input:focus { border-color: var(--accent); }
-    .flex-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .icon-btn {
-      background: transparent; border: none;
-      color: var(--text-muted); cursor: pointer;
-      padding: 2px 4px; border-radius: 4px;
-      font-size: 13px; line-height: 1;
-    }
-    .icon-btn:hover { color: var(--error); background: rgba(239,68,68,0.1); }
-    .hidden { display: none !important; }
-    .empty-state {
-      text-align: center; color: var(--text-muted);
-      font-size: 12px; padding: 20px;
-    }
-    .fields-chip {
-      display: inline-flex;
-      align-items: center;
-      background: rgba(108,99,255,0.12);
-      color: var(--accent);
-      border: 1px solid rgba(108,99,255,0.25);
-      border-radius: 4px;
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 2px 7px;
-      margin: 2px;
-      cursor: pointer;
-    }
-    .fields-chip:hover { background: rgba(108,99,255,0.25); }
-    .tab-strip {
-      display: flex;
-      gap: 1px;
-      background: var(--bg);
-      border-radius: 6px;
-      padding: 2px;
-    }
-    .tab {
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--text-muted);
-      border: none;
-      background: transparent;
-      font-family: var(--font);
-      transition: all 0.15s;
-    }
-    .tab.active { background: var(--surface2); color: var(--text); }
-    hr.divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
-  </style>
+.t-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.t-panel-header { padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.t-panel-body { flex: 1; overflow-y: auto; padding: 10px; }
+
+/* Source / output textareas */
+.code-ta { width: 100%; height: 100%; background: transparent; border: none; color: var(--text); font-family: var(--mono); font-size: 12px; line-height: 1.6; resize: none; outline: none; }
+
+/* Pipeline steps */
+.step-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; margin-bottom: 8px; overflow: hidden; }
+.step-card-head { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; }
+.step-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: .4px; }
+.badge-mapFields  { background: rgba(0,212,170,.15); color: var(--green); }
+.badge-flatten    { background: rgba(108,99,255,.15); color: var(--accent); }
+.badge-filter     { background: rgba(245,158,11,.15); color: var(--yellow); }
+.badge-aggregate  { background: rgba(255,101,132,.15); color: var(--red); }
+.step-body { padding: 8px 10px; border-top: 1px solid var(--border); }
+
+/* Tables in steps */
+.mini-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.mini-table th { text-align: left; padding: 3px 4px; color: var(--muted); border-bottom: 1px solid var(--border); }
+.mini-table td { padding: 2px 3px; }
+.mini-input, .mini-select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
+  color: var(--text); font-family: var(--mono); font-size: 11px; padding: 2px 5px; outline: none; width: 100%;
+}
+.mini-input:focus, .mini-select:focus { border-color: var(--accent); }
+.icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+.icon-btn:hover { color: var(--red); background: rgba(239,68,68,.1); }
+.small-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); display: block; margin-bottom: 3px; }
+.add-menu-wrap { position: relative; }
+.add-menu { position: absolute; top: calc(100% + 4px); right: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; z-index: 200; min-width: 180px; box-shadow: 0 6px 20px rgba(0,0,0,.4); overflow: hidden; }
+.add-menu button { display: block; width: 100%; padding: 8px 14px; background: none; border: none; color: var(--text); font-family: var(--font); font-size: 12px; text-align: left; cursor: pointer; }
+.add-menu button:hover { background: rgba(255,255,255,.05); }
+.flex-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+/* OUTPUT */
+.output-panel { display: flex; flex-direction: column; min-height: 180px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.output-head { padding: 6px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+
+/* ── Misc ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.empty-msg { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 12px; }
+.row-cond, .row-agg { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+.row-cond input, .row-cond select, .row-agg input, .row-agg select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
+  color: var(--text); font-family: var(--mono); font-size: 11px; padding: 2px 5px; outline: none;
+}
+</style>
 </head>
 <body>
 
+<!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
 <header>
-  <div class="logo">
-    <div class="logo-icon">⚡</div>
-    JSON ETL Studio
+  <div class="logo"><div class="logo-icon">⚡</div>JSON ETL Studio</div>
+  <div class="sep"></div>
+
+  <!-- Map tab controls -->
+  <div id="mapControls" style="display:flex;align-items:center;gap:6px">
+    <button class="btn btn-ghost" onclick="reloadFiles()" title="Reload source.json and target.json">↻ Reload Files</button>
+    <button class="btn btn-ghost" onclick="uploadFile('src')" title="Upload source.json">⬆ Source</button>
+    <button class="btn btn-ghost" onclick="uploadFile('dst')" title="Upload target.json">⬆ Target</button>
+    <div class="sep"></div>
+    <button class="btn btn-ghost" onclick="loadTransformation()">📂 Load Mapping</button>
+    <button class="btn btn-green" onclick="saveTransformation()">💾 Save Mapping</button>
+    <button class="btn btn-yellow" onclick="exportDrawio()">📊 Export Diagram</button>
+    <button class="btn btn-ghost" onclick="clearMappings()">✕ Clear</button>
   </div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <span class="badge">v1.0</span>
-    <button class="btn btn-ghost" onclick="clearAll()">Clear All</button>
+
+  <!-- Transform tab controls -->
+  <div id="transformControls" style="display:none;align-items:center;gap:6px">
+    <button class="btn btn-ghost" onclick="syncMappingStep()">⟳ Sync from Map</button>
+    <button class="btn-run" onclick="runTransform()">▶ Run Pipeline</button>
   </div>
+
+  <div class="tabs" style="margin-left:auto">
+    <button class="tab active" onclick="showPage('map')">🗺 Map</button>
+    <button class="tab" onclick="showPage('transform')">⚙ Transform</button>
+  </div>
+  <div class="sep"></div>
+  <div id="statusBar"><span class="status-dot" id="statusDot"></span><span id="statusMsg">Loading…</span></div>
 </header>
 
-<div style="display:flex;flex:1;overflow:hidden">
-  <!-- Main area -->
-  <div class="app-grid" style="flex:1">
-
-    <!-- Source JSON -->
-    <div class="panel">
+<!-- ══ MAP PAGE ════════════════════════════════════════════════════════════ -->
+<div id="mapPage" class="page active">
+  <div class="map-main">
+    <!-- Source tree -->
+    <div class="tree-panel">
       <div class="panel-header">
-        <span class="panel-title"><span class="dot dot-blue"></span>Source JSON</span>
-        <div class="flex-row">
-          <button class="btn btn-ghost" onclick="loadSourceSample()">Sample</button>
-          <label class="btn btn-ghost" style="position:relative;overflow:hidden">
-            Upload
-            <input type="file" accept=".json" onchange="uploadSource(event)"
-                   style="position:absolute;inset:0;opacity:0;cursor:pointer" />
-          </label>
-          <button class="btn btn-primary" onclick="detectSourceFields()">Detect Fields</button>
-        </div>
+        <span class="panel-title"><span class="panel-dot" style="background:var(--accent)"></span>source.json</span>
+        <span id="srcInfo" style="font-size:11px;color:var(--muted)"></span>
       </div>
-      <div class="textarea-wrap">
-        <textarea id="sourceInput" spellcheck="false"
-          placeholder='Paste your source JSON here...&#10;&#10;Example:&#10;[&#10;  {"id": 1, "user": {"name": "Alice"}, "amount": 100},&#10;  {"id": 2, "user": {"name": "Bob"}, "amount": 200}&#10;]'
-        ></textarea>
+      <div class="tree-scroll" id="srcScroll">
+        <div id="srcTree"><div class="empty-msg">Loading source.json…</div></div>
       </div>
     </div>
 
-    <!-- Destination Schema -->
-    <div class="panel">
+    <!-- Target tree -->
+    <div class="tree-panel">
       <div class="panel-header">
-        <span class="panel-title"><span class="dot dot-green"></span>Destination Schema</span>
-        <div class="flex-row">
-          <button class="btn btn-ghost" onclick="loadDestSample()">Sample</button>
-          <button class="btn btn-success" onclick="suggestMapping()">Auto-Map</button>
-        </div>
+        <span class="panel-title"><span class="panel-dot" style="background:var(--green)"></span>target.json</span>
+        <span id="dstInfo" style="font-size:11px;color:var(--muted)"></span>
       </div>
-      <div class="textarea-wrap">
-        <textarea id="destInput" spellcheck="false"
-          placeholder='Paste destination JSON schema / example...&#10;&#10;The fields here are used as destination keys&#10;when auto-mapping from source.'
-        ></textarea>
+      <div class="tree-scroll" id="dstScroll">
+        <div id="dstTree"><div class="empty-msg">Loading target.json…</div></div>
       </div>
     </div>
-
-    <!-- Output (spans 2 cols, split into result + logs) -->
-    <div class="output-row">
-      <!-- Output JSON -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title"><span class="dot dot-green"></span>Output</span>
-          <div class="flex-row">
-            <span id="outputCount" style="font-size:11px;color:var(--text-muted)"></span>
-            <button class="btn btn-ghost" onclick="copyOutput()">Copy</button>
-            <button class="btn btn-success" onclick="downloadOutput()">Download</button>
-          </div>
-        </div>
-        <div class="textarea-wrap">
-          <textarea id="outputArea" spellcheck="false" readonly
-            placeholder="Run the pipeline to see output here..."></textarea>
-        </div>
-      </div>
-
-      <!-- Source Fields + Log -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title"><span class="dot dot-yellow"></span>Info</span>
-          <div class="tab-strip">
-            <button class="tab active" onclick="switchTab('fields')">Fields</button>
-            <button class="tab" onclick="switchTab('logs')">Logs</button>
-          </div>
-        </div>
-        <div id="tab-fields" style="flex:1;overflow-y:auto;padding:10px">
-          <p class="empty-state">Detect source fields to see them here.<br>Click a field to copy its path.</p>
-          <div id="fieldsWrap" class="hidden"></div>
-        </div>
-        <div id="tab-logs" class="hidden" style="flex:1;overflow-y:auto;padding:10px">
-          <p class="empty-state" id="logEmpty">Run the pipeline to see execution logs.</p>
-          <div id="logsWrap"></div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- Right sidebar: Pipeline -->
-  <div class="right-sidebar" style="width:320px">
+  <!-- Mapping bar -->
+  <div class="mapping-bar" id="mappingBar">
+    <span class="mapping-empty">Drag from a source field (right dot) to a target field (left dot) to create a mapping.</span>
+  </div>
+</div>
 
-    <!-- Run button -->
-    <div style="display:flex;gap:8px">
-      <button class="btn-run" style="flex:1" onclick="runPipeline()">▶ Run Pipeline</button>
+<!-- ══ TRANSFORM PAGE ══════════════════════════════════════════════════════ -->
+<div id="transformPage" class="page">
+  <div class="transform-left">
+    <!-- Source input -->
+    <div class="t-panel" style="max-height:45%">
+      <div class="t-panel-header">
+        <span class="panel-title">Source JSON</span>
+        <button class="btn btn-ghost" onclick="loadSourceIntoTransform()">⟳ Load from file</button>
+      </div>
+      <div class="t-panel-body" style="padding:0">
+        <textarea class="code-ta" id="tSourceInput" spellcheck="false"
+          placeholder="Paste or load source JSON here..."></textarea>
+      </div>
     </div>
+    <!-- Output -->
+    <div class="output-panel" style="flex:1">
+      <div class="output-head">
+        <span class="panel-title"><span class="panel-dot" style="background:var(--green)"></span>Output</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span id="tOutputCount" style="font-size:11px;color:var(--muted)"></span>
+          <button class="btn btn-ghost" onclick="copyOutput()">Copy</button>
+          <button class="btn btn-green" onclick="downloadOutput()">Download</button>
+        </div>
+      </div>
+      <div style="flex:1;overflow:hidden;display:flex">
+        <textarea class="code-ta" id="tOutputArea" readonly spellcheck="false"
+          placeholder="Output appears here after running the pipeline."></textarea>
+      </div>
+    </div>
+  </div>
 
-    <!-- Pipeline steps -->
-    <div class="panel" style="flex:1">
-      <div class="panel-header">
+  <div class="transform-right">
+    <!-- Pipeline -->
+    <div class="t-panel" style="flex:1">
+      <div class="t-panel-header">
         <span class="panel-title">⚙ Pipeline Steps</span>
-        <div class="add-step-wrap">
-          <button class="btn btn-primary" onclick="toggleAddMenu()">+ Add Step</button>
-          <div class="add-step-menu hidden" id="addStepMenu">
+        <div class="add-menu-wrap">
+          <button class="btn btn-accent" onclick="toggleAddMenu()">+ Step</button>
+          <div class="add-menu hidden" id="addMenu">
             <button onclick="addStep('mapFields')">🗺 Map / Rename Fields</button>
             <button onclick="addStep('flatten')">📐 Flatten Nested JSON</button>
             <button onclick="addStep('filter')">🔍 Filter Records</button>
@@ -549,435 +330,778 @@
           </div>
         </div>
       </div>
-      <div id="stepList" class="step-list" style="padding:10px;overflow-y:auto;flex:1">
-        <p class="empty-state">No steps yet.<br>Add a step to build your pipeline.</p>
+      <div id="stepList" class="t-panel-body">
+        <div class="empty-msg">No steps yet. Add a step or sync from the Map tab.</div>
       </div>
     </div>
-
-    <!-- Pipeline JSON (advanced) -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">📋 Pipeline JSON</span>
-        <div class="flex-row">
-          <button class="btn btn-ghost" onclick="loadPipelineJSON()">Load</button>
-          <button class="btn btn-ghost" onclick="copyPipelineJSON()">Copy</button>
-        </div>
-      </div>
-      <div class="textarea-wrap" style="max-height:160px">
-        <textarea id="pipelineJSON" spellcheck="false"
-          placeholder="Raw pipeline steps JSON (auto-updated)..."></textarea>
+    <!-- Logs -->
+    <div style="flex-shrink:0;border-top:1px solid var(--border)">
+      <div class="t-panel-header"><span class="panel-title">Execution Logs</span></div>
+      <div id="logArea" style="padding:8px;max-height:140px;overflow-y:auto;font-size:11px;font-family:var(--mono)">
+        <span style="color:var(--muted)">Run the pipeline to see logs.</span>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- Status bar -->
-<div class="status-bar">
-  <span class="status-dot" id="statusDot"></span>
-  <span id="statusMsg">Ready</span>
-  <span style="margin-left:auto;font-family:var(--mono)">JSON ETL Studio</span>
-</div>
+<!-- ══ SVG CONNECTION OVERLAY ══════════════════════════════════════════════ -->
+<svg id="svgOverlay" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowEnd" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="currentColor" />
+    </marker>
+  </defs>
+  <path id="tempLine" d="" style="display:none"/>
+</svg>
+
+<!-- Hidden file inputs -->
+<input type="file" id="fileInputSrc" accept=".json" style="display:none" onchange="handleUpload(event,'src')"/>
+<input type="file" id="fileInputDst" accept=".json" style="display:none" onchange="handleUpload(event,'dst')"/>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────────
-let steps = [];
-let sourceFields = [];
+'use strict';
 
-// ── Utilities ──────────────────────────────────────────────────────────────
-function setStatus(msg, type = 'idle') {
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+
+let sourceData = null;
+let targetData = null;
+let mappings = [];          // [{id, src, dst, color}]
+let expandedSrc = new Set();
+let expandedDst = new Set();
+let dragState = null;
+let allSrcPaths = [];       // flat list of all paths in source tree
+let allDstPaths = [];       // flat list of all paths in target tree
+let steps = [];             // pipeline steps
+
+const COLORS = ['#6c63ff','#00d4aa','#ff6584','#f59e0b','#3b82f6','#ec4899','#10b981','#f97316','#8b5cf6','#06b6d4'];
+let colorCursor = 0;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getType(v) {
+  if (v === null) return 'null';
+  if (Array.isArray(v)) return 'array';
+  return typeof v;
+}
+
+function setStatus(msg, type = '') {
   document.getElementById('statusMsg').textContent = msg;
   const dot = document.getElementById('statusDot');
-  dot.className = 'status-dot' + (type === 'ok' ? ' ok' : type === 'error' ? ' error' : '');
+  dot.className = 'status-dot' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
 }
 
-function parseJSON(str, label) {
-  try { return JSON.parse(str); }
-  catch (e) { throw new Error(`Invalid JSON in ${label}: ${e.message}`); }
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+function nextColor() {
+  const c = COLORS[colorCursor % COLORS.length];
+  colorCursor++;
+  return c;
 }
 
-function switchTab(name) {
-  document.getElementById('tab-fields').classList.toggle('hidden', name !== 'fields');
-  document.getElementById('tab-logs').classList.toggle('hidden', name !== 'logs');
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', (i === 0 && name === 'fields') || (i === 1 && name === 'logs'));
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE / TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+
+function showPage(name) {
+  document.getElementById('mapPage').classList.toggle('active', name === 'map');
+  document.getElementById('transformPage').classList.toggle('active', name === 'transform');
+  document.getElementById('mapControls').style.display = name === 'map' ? 'flex' : 'none';
+  document.getElementById('transformControls').style.display = name === 'transform' ? 'flex' : 'none';
+  document.querySelectorAll('.tab').forEach((t, i) =>
+    t.classList.toggle('active', (i===0 && name==='map') || (i===1 && name==='transform')));
+  if (name === 'map') setTimeout(drawConnections, 50);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TREE RENDERING
+// ═══════════════════════════════════════════════════════════════════════════
+
+function renderTree(data, side) {
+  allSrcPaths = []; allDstPaths = [];
+  const container = document.getElementById(side === 'src' ? 'srcTree' : 'dstTree');
+  container.innerHTML = '';
+  if (data == null) {
+    container.innerHTML = `<div class="empty-msg">No ${side === 'src' ? 'source' : 'target'}.json loaded.</div>`;
+    return;
+  }
+  appendNode(data, '', side, container, 0);
+}
+
+function appendNode(val, path, side, parent, depth) {
+  const type = getType(val);
+  const key = lastKey(path);
+  const expandSet = side === 'src' ? expandedSrc : expandedDst;
+  const isExpanded = expandSet.has(path);
+
+  const node = document.createElement('div');
+  node.className = 'tree-node';
+  parent.appendChild(node);
+
+  const row = document.createElement('div');
+  row.className = 'tree-row';
+  row.style.paddingLeft = (depth * 16 + 4) + 'px';
+  node.appendChild(row);
+
+  const isCollapsible = (type === 'object' || type === 'array') && val !== null;
+
+  // Port dot (dst on left, src on right)
+  const dot = document.createElement('div');
+  dot.className = 'port-dot ' + side;
+  dot.dataset.path = path;
+  dot.dataset.side = side;
+
+  // Toggle or spacer
+  if (isCollapsible) {
+    const toggle = document.createElement('button');
+    toggle.className = 'toggle-btn';
+    toggle.textContent = isExpanded ? '▼' : '▶';
+    toggle.addEventListener('click', () => toggleNode(path, side));
+    row.appendChild(toggle);
+  } else {
+    const sp = document.createElement('span');
+    sp.className = 'spacer';
+    row.appendChild(sp);
+  }
+
+  // Key label
+  if (key) {
+    const kEl = document.createElement('span');
+    kEl.className = 'tree-key';
+    kEl.textContent = key;
+    row.appendChild(kEl);
+    const col = document.createElement('span');
+    col.className = 'tree-colon';
+    col.textContent = ':';
+    row.appendChild(col);
+  }
+
+  // Value / type badge
+  if (isCollapsible) {
+    const badge = document.createElement('span');
+    badge.className = 'tree-type ' + type;
+    const count = type === 'array' ? val.length : Object.keys(val).length;
+    badge.textContent = type === 'array' ? `array [${count}]` : `object {${count}}`;
+    row.appendChild(badge);
+  } else {
+    const valEl = document.createElement('span');
+    valEl.className = 'tree-val ' + type;
+    const display = val === null ? 'null' : String(val);
+    valEl.textContent = display.length > 50 ? display.slice(0, 50) + '…' : display;
+    valEl.title = display;
+    row.appendChild(valEl);
+  }
+
+  // Append dot — target: before toggle, source: after value (right side)
+  if (side === 'dst') {
+    row.insertBefore(dot, row.firstChild);
+  } else {
+    row.appendChild(dot);
+  }
+
+  // Collect paths
+  if (side === 'src') allSrcPaths.push(path);
+  else allDstPaths.push(path);
+
+  // Drag events on source dots
+  if (side === 'src') {
+    dot.addEventListener('mousedown', (e) => startDrag(e, path));
+  }
+  // Drop events on target dots
+  if (side === 'dst') {
+    dot.addEventListener('mouseenter', () => { if (dragState) dot.classList.add('drop-hover'); });
+    dot.addEventListener('mouseleave', () => dot.classList.remove('drop-hover'));
+  }
+
+  // Children
+  if (isCollapsible && isExpanded) {
+    const children = document.createElement('div');
+    children.className = 'tree-children';
+    node.appendChild(children);
+
+    if (type === 'array') {
+      const limit = Math.min(val.length, 20);
+      for (let i = 0; i < limit; i++) {
+        const cp = path ? `${path}[${i}]` : `[${i}]`;
+        appendNode(val[i], cp, side, children, depth + 1);
+      }
+      if (val.length > limit) {
+        const more = document.createElement('div');
+        more.className = 'tree-more';
+        more.style.paddingLeft = ((depth + 1) * 16 + 20) + 'px';
+        more.textContent = `… ${val.length - limit} more items`;
+        children.appendChild(more);
+      }
+    } else {
+      for (const [k, v] of Object.entries(val)) {
+        const cp = path ? `${path}.${k}` : k;
+        appendNode(v, cp, side, children, depth + 1);
+      }
+    }
+  }
+}
+
+function lastKey(path) {
+  if (!path) return '';
+  const m = path.match(/\.?([^.\[]+)(?:\[(\d+)\])?$|(\[(\d+)\])$/);
+  if (!m) return path;
+  return m[2] != null ? `[${m[2]}]` : m[1] || `[${m[4]}]`;
+}
+
+function toggleNode(path, side) {
+  const expandSet = side === 'src' ? expandedSrc : expandedDst;
+  if (expandSet.has(path)) expandSet.delete(path);
+  else expandSet.add(path);
+  renderTree(side === 'src' ? sourceData : targetData, side);
+  updateDotColors();
+  requestAnimationFrame(drawConnections);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SVG CONNECTION LINES
+// ═══════════════════════════════════════════════════════════════════════════
+
+const svg = document.getElementById('svgOverlay');
+const tempLine = document.getElementById('tempLine');
+
+function dotEl(side, path) {
+  return document.querySelector(`.port-dot.${side}[data-path="${CSS.escape(path)}"]`);
+}
+
+function dotCenter(el) {
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  if (r.width === 0) return null;
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+
+function makeBezier(x1, y1, x2, y2) {
+  const cx = (x1 + x2) / 2;
+  return `M ${x1} ${y1} C ${cx} ${y1} ${cx} ${y2} ${x2} ${y2}`;
+}
+
+function drawConnections() {
+  // Remove old connection elements
+  svg.querySelectorAll('.conn-group').forEach(el => el.remove());
+
+  for (const m of mappings) {
+    const srcDot = dotEl('src', m.src);
+    const dstDot = dotEl('dst', m.dst);
+    const p1 = dotCenter(srcDot);
+    const p2 = dotCenter(dstDot);
+    if (!p1 || !p2) continue;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.className = 'conn-group';
+    g.dataset.id = m.id;
+
+    const d = makeBezier(p1.x, p1.y, p2.x, p2.y);
+
+    // Visible line
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', d);
+    line.setAttribute('stroke', m.color);
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('opacity', '0.85');
+
+    // Transparent hit area for click-to-delete
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    hit.setAttribute('d', d);
+    hit.setAttribute('stroke', 'transparent');
+    hit.setAttribute('fill', 'none');
+    hit.setAttribute('stroke-width', '12');
+    hit.style.cursor = 'pointer';
+    hit.style.pointerEvents = 'stroke';
+    hit.addEventListener('click', () => { removeMapping(m.id); });
+
+    g.appendChild(line);
+    g.appendChild(hit);
+    svg.appendChild(g);
+  }
+
+  updateDotColors();
+}
+
+// Allow pointer events on connection hit areas but not the SVG background
+svg.style.pointerEvents = 'none';
+// Individual groups get pointer events via their hit elements
+
+function updateDotColors() {
+  const mappedSrc = new Map(mappings.map(m => [m.src, m.color]));
+  const mappedDst = new Map(mappings.map(m => [m.dst, m.color]));
+
+  document.querySelectorAll('.port-dot.src').forEach(d => {
+    const c = mappedSrc.get(d.dataset.path);
+    d.classList.toggle('connected', !!c);
+    d.style.background = c ? c + '44' : '';
+    d.style.borderColor = c || '';
+  });
+  document.querySelectorAll('.port-dot.dst').forEach(d => {
+    const c = mappedDst.get(d.dataset.path);
+    d.classList.toggle('connected', !!c);
+    d.style.background = c ? c + '44' : '';
+    d.style.borderColor = c || '';
   });
 }
 
-function clearAll() {
-  document.getElementById('sourceInput').value = '';
-  document.getElementById('destInput').value = '';
-  document.getElementById('outputArea').value = '';
-  document.getElementById('outputCount').textContent = '';
-  steps = [];
-  sourceFields = [];
-  renderSteps();
-  document.getElementById('logsWrap').innerHTML = '';
-  document.getElementById('fieldsWrap').innerHTML = '';
-  document.getElementById('fieldsWrap').classList.add('hidden');
-  setStatus('Cleared');
+// ═══════════════════════════════════════════════════════════════════════════
+// DRAG AND DROP
+// ═══════════════════════════════════════════════════════════════════════════
+
+function startDrag(e, srcPath) {
+  e.preventDefault();
+  const srcDot = e.currentTarget;
+  const p = dotCenter(srcDot);
+  if (!p) return;
+
+  dragState = { srcPath, x0: p.x, y0: p.y };
+  tempLine.style.display = '';
+  tempLine.setAttribute('d', `M ${p.x} ${p.y} L ${p.x} ${p.y}`);
+
+  // Enable pointer events on svg so we receive events
+  svg.style.pointerEvents = 'all';
+
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
 }
 
-// ── Source ─────────────────────────────────────────────────────────────────
-function loadSourceSample() {
-  document.getElementById('sourceInput').value = JSON.stringify([
-    { id: 1, user: { name: 'Alice', email: 'alice@example.com' }, order: { total: 120.5, items: 3 }, region: 'North' },
-    { id: 2, user: { name: 'Bob',   email: 'bob@example.com'   }, order: { total: 89.0,  items: 1 }, region: 'South' },
-    { id: 3, user: { name: 'Carol', email: 'carol@example.com' }, order: { total: 340.0, items: 7 }, region: 'North' },
-    { id: 4, user: { name: 'Dave',  email: 'dave@example.com'  }, order: { total: 55.0,  items: 2 }, region: 'East'  },
-  ], null, 2);
+function onDragMove(e) {
+  if (!dragState) return;
+  const { x0, y0 } = dragState;
+  tempLine.setAttribute('d', makeBezier(x0, y0, e.clientX, e.clientY));
+
+  // Highlight potential drop target
+  svg.style.pointerEvents = 'none'; // temporarily disable to hit underlying elements
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  svg.style.pointerEvents = 'all';
+
+  document.querySelectorAll('.port-dot.dst').forEach(d => d.classList.remove('drop-hover'));
+  if (el?.classList.contains('port-dot') && el.dataset.side === 'dst') {
+    el.classList.add('drop-hover');
+  }
 }
 
-function loadDestSample() {
-  document.getElementById('destInput').value = JSON.stringify({
-    customer_name: '',
-    email_address: '',
-    total_spent: 0,
-    area: ''
-  }, null, 2);
+function onDragEnd(e) {
+  if (!dragState) return;
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+
+  tempLine.style.display = 'none';
+  tempLine.setAttribute('d', '');
+  svg.style.pointerEvents = 'none';
+
+  document.querySelectorAll('.port-dot.dst.drop-hover').forEach(d => d.classList.remove('drop-hover'));
+
+  // Find drop target
+  svg.style.pointerEvents = 'none';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+
+  if (el?.classList.contains('port-dot') && el.dataset.side === 'dst') {
+    addMapping(dragState.srcPath, el.dataset.path);
+  }
+  dragState = null;
 }
 
-function uploadSource(event) {
-  const file = event.target.files[0];
+// ═══════════════════════════════════════════════════════════════════════════
+// MAPPING MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function addMapping(src, dst) {
+  // Remove existing mapping for this dst (one-to-one)
+  mappings = mappings.filter(m => m.dst !== dst);
+  mappings.push({ id: uid(), src, dst, color: nextColor() });
+  renderMappingBar();
+  drawConnections();
+  setStatus(`Mapped ${src} → ${dst}`, 'ok');
+}
+
+function removeMapping(id) {
+  mappings = mappings.filter(m => m.id !== id);
+  renderMappingBar();
+  drawConnections();
+}
+
+function clearMappings() {
+  mappings = [];
+  colorCursor = 0;
+  renderMappingBar();
+  drawConnections();
+  setStatus('Mappings cleared');
+}
+
+function renderMappingBar() {
+  const bar = document.getElementById('mappingBar');
+  if (mappings.length === 0) {
+    bar.innerHTML = '<span class="mapping-empty">Drag from a source field (right dot ●) to a target field (left dot ●) to create a mapping.</span>';
+    return;
+  }
+  bar.innerHTML = mappings.map(m => `
+    <span class="mapping-chip" style="border-color:${m.color}44">
+      <span class="src-path" style="color:${m.color}">${esc(m.src)}</span>
+      <span class="arrow">→</span>
+      <span class="dst-path" style="color:${m.color}">${esc(m.dst)}</span>
+      <button class="del-btn" onclick="removeMapping('${m.id}')" title="Remove">✕</button>
+    </span>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FILE I/O
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function reloadFiles() {
+  setStatus('Loading files…');
+  try {
+    const [srcRes, dstRes] = await Promise.all([fetch('/api/source'), fetch('/api/target')]);
+    const srcData = await srcRes.json();
+    const dstData = await dstRes.json();
+
+    sourceData = srcData.data;
+    targetData = dstData.data;
+
+    expandedSrc.clear(); expandedDst.clear();
+    // Auto-expand first level
+    if (sourceData != null) autoExpand(sourceData, '', 'src', 1);
+    if (targetData != null) autoExpand(targetData, '', 'dst', 1);
+
+    renderTree(sourceData, 'src');
+    renderTree(targetData, 'dst');
+    updateFileInfo();
+    drawConnections();
+    setStatus('Files loaded', 'ok');
+  } catch(e) {
+    setStatus('Load error: ' + e.message, 'err');
+  }
+}
+
+function autoExpand(val, path, side, maxDepth) {
+  if (maxDepth <= 0) return;
+  const type = getType(val);
+  if (type === 'object') {
+    const expandSet = side === 'src' ? expandedSrc : expandedDst;
+    expandSet.add(path);
+    for (const [k, v] of Object.entries(val)) {
+      autoExpand(v, path ? `${path}.${k}` : k, side, maxDepth - 1);
+    }
+  } else if (type === 'array' && val.length > 0) {
+    const expandSet = side === 'src' ? expandedSrc : expandedDst;
+    expandSet.add(path);
+    autoExpand(val[0], path ? `${path}[0]` : '[0]', side, maxDepth - 1);
+  }
+}
+
+function updateFileInfo() {
+  const srcInfo = document.getElementById('srcInfo');
+  const dstInfo = document.getElementById('dstInfo');
+  if (sourceData != null) {
+    srcInfo.textContent = Array.isArray(sourceData)
+      ? `${sourceData.length} records` : typeof sourceData === 'object' ? 'object' : typeof sourceData;
+  } else srcInfo.textContent = 'not found';
+  if (targetData != null) {
+    dstInfo.textContent = Array.isArray(targetData)
+      ? `${targetData.length} records` : typeof targetData === 'object' ? 'object' : typeof targetData;
+  } else dstInfo.textContent = 'not found';
+}
+
+function uploadFile(side) {
+  document.getElementById(side === 'src' ? 'fileInputSrc' : 'fileInputDst').click();
+}
+
+function handleUpload(e, side) {
+  const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (e) => { document.getElementById('sourceInput').value = e.target.result; };
+  reader.onload = async (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const res = await fetch(`/api/${side === 'src' ? 'source' : 'target'}`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ data })
+      });
+      if (!res.ok) throw new Error('Save failed');
+      setStatus(`${file.name} saved`, 'ok');
+      await reloadFiles();
+    } catch(err) {
+      setStatus('Upload error: ' + err.message, 'err');
+    }
+  };
   reader.readAsText(file);
+  e.target.value = '';
 }
 
-async function detectSourceFields() {
-  const src = document.getElementById('sourceInput').value.trim();
-  if (!src) return setStatus('Paste source JSON first', 'error');
+async function loadTransformation() {
   try {
-    const source = parseJSON(src, 'Source');
-    const res = await fetch('/api/fields', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source })
+    const res = await fetch('/api/transformation');
+    const data = await res.json();
+    mappings = (data.mappings || []).map(m => ({ ...m, color: m.color || nextColor() }));
+    steps = data.steps || [];
+    colorCursor = mappings.length;
+    renderMappingBar();
+    renderSteps();
+    drawConnections();
+    setStatus(`Loaded ${mappings.length} mappings, ${steps.length} steps`, 'ok');
+  } catch(e) {
+    setStatus('Load error: ' + e.message, 'err');
+  }
+}
+
+async function saveTransformation() {
+  try {
+    const body = { mappings: mappings.map(({id,src,dst,color}) => ({id,src,dst,color})), steps };
+    const res = await fetch('/api/transformation', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
-    sourceFields = data.fields;
-    renderFieldChips(sourceFields);
-    setStatus(`Detected ${sourceFields.length} fields`, 'ok');
-  } catch (e) { setStatus(e.message, 'error'); }
-}
-
-function renderFieldChips(fields) {
-  const wrap = document.getElementById('fieldsWrap');
-  wrap.innerHTML = '';
-  wrap.classList.remove('hidden');
-  document.querySelector('#tab-fields .empty-state')?.remove();
-  fields.forEach(f => {
-    const chip = document.createElement('span');
-    chip.className = 'fields-chip';
-    chip.textContent = f;
-    chip.title = 'Click to copy';
-    chip.onclick = () => { navigator.clipboard.writeText(f); chip.style.background = 'rgba(34,197,94,0.2)'; setTimeout(() => chip.style.background = '', 800); };
-    wrap.appendChild(chip);
-  });
-}
-
-// ── Auto-map ───────────────────────────────────────────────────────────────
-async function suggestMapping() {
-  const srcStr = document.getElementById('sourceInput').value.trim();
-  const dstStr = document.getElementById('destInput').value.trim();
-  if (!srcStr || !dstStr) return setStatus('Need both Source and Destination JSON', 'error');
-  try {
-    const source = parseJSON(srcStr, 'Source');
-    const dest   = parseJSON(dstStr, 'Destination');
-
-    // Detect source fields
-    const fieldsRes = await fetch('/api/fields', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source })
-    });
-    const { fields: srcFields } = await fieldsRes.json();
-    sourceFields = srcFields;
-    renderFieldChips(srcFields);
-
-    const destFields = Object.keys(dest);
-
-    const res = await fetch('/api/suggest-mapping', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sourceFields: srcFields, destFields })
-    });
-    const { mapping } = await res.json();
-
-    // Add or update a mapFields step
-    const existing = steps.find(s => s.type === 'mapFields');
-    if (existing) {
-      existing.mapping = { ...existing.mapping, ...mapping };
-    } else {
-      steps.push({ type: 'mapFields', mapping });
-    }
-    renderSteps();
-    setStatus(`Auto-mapped ${Object.keys(mapping).length} / ${destFields.length} fields`, 'ok');
-  } catch(e) { setStatus(e.message, 'error'); }
-}
-
-// ── Pipeline steps ─────────────────────────────────────────────────────────
-function toggleAddMenu() {
-  document.getElementById('addStepMenu').classList.toggle('hidden');
-}
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.add-step-wrap')) {
-    document.getElementById('addStepMenu').classList.add('hidden');
+    if (!data.ok) throw new Error('Save failed');
+    setStatus('transformation.json saved', 'ok');
+  } catch(e) {
+    setStatus('Save error: ' + e.message, 'err');
   }
-});
+}
+
+async function exportDrawio() {
+  if (mappings.length === 0) return setStatus('No mappings to export', 'err');
+  try {
+    const body = {
+      mappings: mappings.map(({src,dst}) => ({src,dst})),
+      sourcePaths: allSrcPaths.filter(p => p !== ''),
+      targetPaths: allDstPaths.filter(p => p !== ''),
+    };
+    const res = await fetch('/api/export/drawio', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'mapping.drawio'; a.click();
+    URL.revokeObjectURL(url);
+    setStatus('mapping.drawio exported — open in draw.io / diagrams.net', 'ok');
+  } catch(e) {
+    setStatus('Export error: ' + e.message, 'err');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TRANSFORM / PIPELINE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function syncMappingStep() {
+  if (mappings.length === 0) return setStatus('No mappings to sync', 'err');
+  // Build mapFields step from current mappings
+  const mapping = {};
+  for (const m of mappings) {
+    // Strip [N] array indices from src path for use as a template path
+    const srcPath = m.src.replace(/\[\d+\]\./g, '').replace(/^\[\d+\]/, '');
+    mapping[m.dst] = srcPath;
+  }
+  const existing = steps.findIndex(s => s.type === 'mapFields');
+  if (existing >= 0) steps[existing] = { type: 'mapFields', mapping };
+  else steps.unshift({ type: 'mapFields', mapping });
+  renderSteps();
+  setStatus('Synced mapping step from Map tab', 'ok');
+}
 
 function addStep(type) {
-  document.getElementById('addStepMenu').classList.add('hidden');
-  if (type === 'flatten') {
-    steps.push({ type: 'flatten', separator: '.' });
-  } else if (type === 'mapFields') {
-    steps.push({ type: 'mapFields', mapping: { '': '' } });
-  } else if (type === 'filter') {
-    steps.push({ type: 'filter', conditions: [{ field: '', op: 'eq', value: '' }] });
-  } else if (type === 'aggregate') {
-    steps.push({ type: 'aggregate', groupBy: '', aggregations: [{ field: '', op: 'sum', as: '' }] });
-  }
+  document.getElementById('addMenu').classList.add('hidden');
+  const defaults = {
+    mapFields: { type:'mapFields', mapping:{'':{_const:''}} },
+    flatten:   { type:'flatten', separator:'.' },
+    filter:    { type:'filter', conditions:[{field:'',op:'eq',value:''}] },
+    aggregate: { type:'aggregate', groupBy:'', aggregations:[{field:'',op:'sum',as:''}] }
+  };
+  steps.push(defaults[type]);
   renderSteps();
 }
 
-function removeStep(idx) {
-  steps.splice(idx, 1);
+function removeStep(i) { steps.splice(i,1); renderSteps(); }
+function moveStep(i, d) {
+  const j = i + d;
+  if (j < 0 || j >= steps.length) return;
+  [steps[i], steps[j]] = [steps[j], steps[i]];
   renderSteps();
 }
 
 function renderSteps() {
   const list = document.getElementById('stepList');
-  list.innerHTML = '';
   if (steps.length === 0) {
-    list.innerHTML = '<p class="empty-state">No steps yet.<br>Add a step to build your pipeline.</p>';
-    syncPipelineJSON();
+    list.innerHTML = '<div class="empty-msg">No steps. Add a step or sync from the Map tab.</div>';
     return;
   }
-  steps.forEach((step, idx) => {
+  list.innerHTML = '';
+  steps.forEach((step, i) => {
     const card = document.createElement('div');
     card.className = 'step-card';
     card.innerHTML = `
-      <div class="step-card-header">
+      <div class="step-card-head">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="color:var(--text-muted);font-size:11px;font-family:var(--mono)">${idx + 1}</span>
-          <span class="step-type-badge badge-${step.type.toLowerCase()}">${step.type}</span>
+          <span style="color:var(--muted);font-size:10px;font-family:var(--mono)">${i+1}</span>
+          <span class="step-badge badge-${step.type}">${step.type}</span>
         </div>
-        <div style="display:flex;gap:4px">
-          ${idx > 0 ? `<button class="icon-btn" title="Move up" onclick="moveStep(${idx},-1)">↑</button>` : ''}
-          ${idx < steps.length - 1 ? `<button class="icon-btn" title="Move down" onclick="moveStep(${idx},1)">↓</button>` : ''}
-          <button class="icon-btn" onclick="removeStep(${idx})">✕</button>
+        <div style="display:flex;gap:2px">
+          ${i > 0 ? `<button class="icon-btn" onclick="moveStep(${i},-1)">↑</button>` : ''}
+          ${i < steps.length-1 ? `<button class="icon-btn" onclick="moveStep(${i},1)">↓</button>` : ''}
+          <button class="icon-btn" onclick="removeStep(${i})">✕</button>
         </div>
       </div>
-      <div class="step-body" id="stepBody-${idx}"></div>
+      <div class="step-body" id="sb-${i}"></div>
     `;
     list.appendChild(card);
-    renderStepBody(step, idx, card.querySelector(`#stepBody-${idx}`));
+    renderStepBody(step, i, card.querySelector(`#sb-${i}`));
   });
-  syncPipelineJSON();
 }
 
-function moveStep(idx, dir) {
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= steps.length) return;
-  [steps[idx], steps[newIdx]] = [steps[newIdx], steps[idx]];
-  renderSteps();
-}
-
-function renderStepBody(step, idx, container) {
+function renderStepBody(step, idx, el) {
   if (step.type === 'flatten') {
-    container.innerHTML = `
-      <label class="small-label">Separator</label>
-      <input class="inline-input" value="${step.separator || '.'}"
-        oninput="steps[${idx}].separator = this.value; syncPipelineJSON()" style="width:60px" />
-    `;
+    el.innerHTML = `<label class="small-label">Separator</label>
+      <input class="mini-input" style="width:60px" value="${esc(step.separator||'.')}"
+        oninput="steps[${idx}].separator=this.value"/>`;
 
   } else if (step.type === 'mapFields') {
     const entries = Object.entries(step.mapping || {});
-    const rows = entries.map(([dest, src], ri) => `
-      <tr>
-        <td><input type="text" value="${escHtml(dest)}" placeholder="destination key"
-          oninput="updateMapping(${idx}, ${ri}, 'dest', this.value)" /></td>
-        <td style="text-align:center;color:var(--text-muted);padding:0 4px">←</td>
-        <td>
-          <input type="text" value="${escHtml(src)}" placeholder="source path or {field}"
-            oninput="updateMapping(${idx}, ${ri}, 'src', this.value)"
-            list="srcFields-${idx}" />
-          <datalist id="srcFields-${idx}">
-            ${sourceFields.map(f => `<option value="${f}">`).join('')}
-          </datalist>
-        </td>
-        <td><button class="icon-btn" onclick="removeMappingRow(${idx},${ri})">✕</button></td>
-      </tr>`).join('');
-    container.innerHTML = `
-      <table class="mapping-table">
-        <thead><tr><th>Destination</th><th></th><th>Source path</th><th></th></tr></thead>
-        <tbody id="mapRows-${idx}">${rows}</tbody>
+    el.innerHTML = `
+      <table class="mini-table">
+        <thead><tr><th>Destination key</th><th></th><th>Source path</th><th></th></tr></thead>
+        <tbody>${entries.map(([d,s],ri) => `<tr>
+          <td><input class="mini-input" value="${esc(d)}" placeholder="dest"
+            oninput="updateMapRow(${idx},${ri},'dst',this.value)"/></td>
+          <td style="text-align:center;color:var(--muted);padding:0 3px">←</td>
+          <td><input class="mini-input" value="${esc(typeof s==='string'?s:s?._const??'')}"
+            placeholder="source path or {f1} {f2}"
+            oninput="updateMapRow(${idx},${ri},'src',this.value)"/></td>
+          <td><button class="icon-btn" onclick="removeMapRow(${idx},${ri})">✕</button></td>
+        </tr>`).join('')}</tbody>
       </table>
-      <button class="btn btn-ghost" style="margin-top:6px;font-size:11px" onclick="addMappingRow(${idx})">+ Row</button>
-    `;
+      <button class="btn btn-ghost" style="margin-top:6px;font-size:11px" onclick="addMapRow(${idx})">+ Row</button>`;
 
   } else if (step.type === 'filter') {
-    const conds = step.conditions || [];
-    const rows = conds.map((c, ci) => `
-      <div class="condition-row">
-        <input class="field-in" type="text" value="${escHtml(c.field)}" placeholder="field.path"
-          oninput="steps[${idx}].conditions[${ci}].field=this.value;syncPipelineJSON()"
-          list="srcFields-f${idx}" />
-        <datalist id="srcFields-f${idx}">
-          ${sourceFields.map(f => `<option value="${f}">`).join('')}
-        </datalist>
-        <select class="op-in" onchange="steps[${idx}].conditions[${ci}].op=this.value;syncPipelineJSON()">
-          ${['eq','neq','gt','gte','lt','lte','contains','exists','missing'].map(op =>
-            `<option value="${op}" ${c.op===op?'selected':''}>${op}</option>`).join('')}
+    el.innerHTML = (step.conditions||[]).map((c,ci)=>`
+      <div class="row-cond">
+        <input style="flex:2" value="${esc(c.field)}" placeholder="field.path"
+          oninput="steps[${idx}].conditions[${ci}].field=this.value"/>
+        <select onchange="steps[${idx}].conditions[${ci}].op=this.value">
+          ${['eq','neq','gt','gte','lt','lte','contains','exists','missing'].map(op=>
+            `<option ${c.op===op?'selected':''}>${op}</option>`).join('')}
         </select>
-        <input class="val-in" type="text" value="${escHtml(String(c.value ?? ''))}" placeholder="value"
-          oninput="steps[${idx}].conditions[${ci}].value=this.value;syncPipelineJSON()" />
+        <input style="flex:2" value="${esc(String(c.value??''))}" placeholder="value"
+          oninput="steps[${idx}].conditions[${ci}].value=this.value"/>
         <button class="icon-btn" onclick="steps[${idx}].conditions.splice(${ci},1);renderSteps()">✕</button>
-      </div>`).join('');
-    container.innerHTML = `
-      <div id="condRows-${idx}">${rows}</div>
-      <button class="btn btn-ghost" style="font-size:11px" onclick="steps[${idx}].conditions.push({field:'',op:'eq',value:''});renderSteps()">+ Condition</button>
-    `;
+      </div>`).join('')
+    + `<button class="btn btn-ghost" style="font-size:11px" onclick="steps[${idx}].conditions.push({field:'',op:'eq',value:''});renderSteps()">+ Condition</button>`;
 
   } else if (step.type === 'aggregate') {
-    const aggs = step.aggregations || [];
-    const aggRows = aggs.map((a, ai) => `
-      <div class="agg-row">
-        <input type="text" value="${escHtml(a.field)}" placeholder="field" style="flex:2"
-          oninput="steps[${idx}].aggregations[${ai}].field=this.value;syncPipelineJSON()"
-          list="srcFields-a${idx}" />
-        <datalist id="srcFields-a${idx}">
-          ${sourceFields.map(f => `<option value="${f}">`).join('')}
-        </datalist>
-        <select onchange="steps[${idx}].aggregations[${ai}].op=this.value;syncPipelineJSON()">
-          ${['sum','avg','min','max','count'].map(op =>
-            `<option value="${op}" ${a.op===op?'selected':''}>${op}</option>`).join('')}
-        </select>
-        <input type="text" value="${escHtml(a.as || '')}" placeholder="as (output key)" style="flex:2"
-          oninput="steps[${idx}].aggregations[${ai}].as=this.value;syncPipelineJSON()" />
-        <button class="icon-btn" onclick="steps[${idx}].aggregations.splice(${ai},1);renderSteps()">✕</button>
-      </div>`).join('');
-    container.innerHTML = `
-      <label class="small-label">Group By field</label>
-      <input class="inline-input" value="${escHtml(step.groupBy || '')}" placeholder="field path (leave blank for global)"
-        oninput="steps[${idx}].groupBy=this.value;syncPipelineJSON()"
-        list="srcFields-gb${idx}" style="width:100%;margin-bottom:8px" />
-      <datalist id="srcFields-gb${idx}">
-        ${sourceFields.map(f => `<option value="${f}">`).join('')}
-      </datalist>
+    el.innerHTML = `
+      <label class="small-label">Group By</label>
+      <input class="mini-input" style="margin-bottom:8px" value="${esc(step.groupBy||'')}" placeholder="field path"
+        oninput="steps[${idx}].groupBy=this.value"/>
       <label class="small-label">Aggregations</label>
-      <div id="aggRows-${idx}">${aggRows}</div>
+      ${(step.aggregations||[]).map((a,ai)=>`
+        <div class="row-agg">
+          <input style="flex:2" value="${esc(a.field)}" placeholder="field"
+            oninput="steps[${idx}].aggregations[${ai}].field=this.value"/>
+          <select onchange="steps[${idx}].aggregations[${ai}].op=this.value">
+            ${['sum','avg','min','max','count'].map(op=>`<option ${a.op===op?'selected':''}>${op}</option>`).join('')}
+          </select>
+          <input style="flex:2" value="${esc(a.as||'')}" placeholder="output key"
+            oninput="steps[${idx}].aggregations[${ai}].as=this.value"/>
+          <button class="icon-btn" onclick="steps[${idx}].aggregations.splice(${ai},1);renderSteps()">✕</button>
+        </div>`).join('')}
       <button class="btn btn-ghost" style="font-size:11px;margin-top:4px"
-        onclick="steps[${idx}].aggregations.push({field:'',op:'sum',as:''});renderSteps()">+ Aggregation</button>
-    `;
+        onclick="steps[${idx}].aggregations.push({field:'',op:'sum',as:''});renderSteps()">+ Aggregation</button>`;
   }
 }
 
-function updateMapping(stepIdx, rowIdx, which, value) {
+function updateMapRow(stepIdx, rowIdx, which, value) {
   const entries = Object.entries(steps[stepIdx].mapping);
-  if (which === 'dest') {
+  if (which === 'dst') {
     const newMapping = {};
-    entries.forEach(([d, s], i) => { newMapping[i === rowIdx ? value : d] = s; });
+    entries.forEach(([d,s],i) => { newMapping[i===rowIdx ? value : d] = s; });
     steps[stepIdx].mapping = newMapping;
   } else {
     entries[rowIdx][1] = value;
     steps[stepIdx].mapping = Object.fromEntries(entries);
   }
-  syncPipelineJSON();
+}
+function addMapRow(stepIdx)       { steps[stepIdx].mapping[''] = ''; renderSteps(); }
+function removeMapRow(stepIdx, ri){ const e=Object.entries(steps[stepIdx].mapping); e.splice(ri,1); steps[stepIdx].mapping=Object.fromEntries(e); renderSteps(); }
+
+function loadSourceIntoTransform() {
+  document.getElementById('tSourceInput').value = JSON.stringify(sourceData, null, 2);
 }
 
-function addMappingRow(stepIdx) {
-  steps[stepIdx].mapping[''] = '';
-  renderSteps();
-}
-
-function removeMappingRow(stepIdx, rowIdx) {
-  const entries = Object.entries(steps[stepIdx].mapping);
-  entries.splice(rowIdx, 1);
-  steps[stepIdx].mapping = Object.fromEntries(entries);
-  renderSteps();
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── Pipeline JSON sync ─────────────────────────────────────────────────────
-function syncPipelineJSON() {
-  document.getElementById('pipelineJSON').value = JSON.stringify(steps, null, 2);
-}
-
-function loadPipelineJSON() {
+async function runTransform() {
+  const srcStr = document.getElementById('tSourceInput').value.trim();
+  if (!srcStr) return setStatus('Paste source JSON first', 'err');
+  if (steps.length === 0) return setStatus('Add at least one step', 'err');
   try {
-    steps = JSON.parse(document.getElementById('pipelineJSON').value);
-    renderSteps();
-    setStatus('Pipeline loaded from JSON', 'ok');
-  } catch(e) { setStatus('Invalid pipeline JSON: ' + e.message, 'error'); }
-}
-
-function copyPipelineJSON() {
-  navigator.clipboard.writeText(document.getElementById('pipelineJSON').value);
-  setStatus('Pipeline JSON copied', 'ok');
-}
-
-// ── Run ────────────────────────────────────────────────────────────────────
-async function runPipeline() {
-  const srcStr = document.getElementById('sourceInput').value.trim();
-  if (!srcStr) return setStatus('Paste source JSON first', 'error');
-  if (steps.length === 0) return setStatus('Add at least one pipeline step', 'error');
-
-  setStatus('Running pipeline…');
-  try {
-    const source = parseJSON(srcStr, 'Source');
+    const source = JSON.parse(srcStr);
     const res = await fetch('/api/transform', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ source, steps })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
-
-    const out = JSON.stringify(data.result, null, 2);
-    document.getElementById('outputArea').value = out;
-
-    const count = Array.isArray(data.result) ? `${data.result.length} records` : '1 record';
-    document.getElementById('outputCount').textContent = count;
-
+    document.getElementById('tOutputArea').value = JSON.stringify(data.result, null, 2);
+    const cnt = Array.isArray(data.result) ? `${data.result.length} records` : '1 record';
+    document.getElementById('tOutputCount').textContent = cnt;
     renderLogs(data.logs);
-    switchTab('logs');
-    setStatus(`Done — ${count}`, 'ok');
-  } catch(e) {
-    setStatus(e.message, 'error');
-  }
+    setStatus(`Done — ${cnt}`, 'ok');
+  } catch(e) { setStatus(e.message, 'err'); }
 }
 
 function renderLogs(logs) {
-  const wrap = document.getElementById('logsWrap');
-  document.getElementById('logEmpty').classList.add('hidden');
-  wrap.innerHTML = logs.map(l => {
-    const cls = l.status === 'ok' ? 'log-ok' : l.status === 'error' ? 'log-error' : 'log-skip';
-    const icon = l.status === 'ok' ? '✓' : l.status === 'error' ? '✗' : '○';
-    const extra = l.recordsOut != null ? ` → ${l.recordsOut} records`
-                : l.groups != null ? ` → ${l.groups} groups`
-                : l.error ? `: ${l.error}` : '';
-    return `<div class="log-entry ${cls}">${icon} <b>${l.step}</b>${extra}</div>`;
+  document.getElementById('logArea').innerHTML = logs.map(l => {
+    const cls = l.status==='ok'?'color:var(--green)':l.status==='error'?'color:var(--red)':'color:var(--muted)';
+    const icon = l.status==='ok'?'✓':l.status==='error'?'✗':'○';
+    const extra = l.recordsOut!=null?` → ${l.recordsOut} records`:l.groups!=null?` → ${l.groups} groups`:l.error?`: ${l.error}`:'';
+    return `<div style="${cls}">${icon} <b>${l.step}</b>${extra}</div>`;
   }).join('');
 }
 
-// ── Output ─────────────────────────────────────────────────────────────────
 function copyOutput() {
-  const v = document.getElementById('outputArea').value;
-  if (!v) return;
-  navigator.clipboard.writeText(v);
-  setStatus('Output copied', 'ok');
+  const v = document.getElementById('tOutputArea').value;
+  if (v) navigator.clipboard.writeText(v).then(() => setStatus('Copied', 'ok'));
 }
-
 function downloadOutput() {
-  const v = document.getElementById('outputArea').value;
+  const v = document.getElementById('tOutputArea').value;
   if (!v) return;
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([v], { type: 'application/json' }));
-  a.download = 'output.json';
-  a.click();
+  a.href = URL.createObjectURL(new Blob([v], {type:'application/json'}));
+  a.download = 'output.json'; a.click();
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MISC / EVENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function toggleAddMenu() {
+  document.getElementById('addMenu').classList.toggle('hidden');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.add-menu-wrap')) document.getElementById('addMenu').classList.add('hidden');
+});
+
+// Redraw connections on scroll
+document.getElementById('srcScroll').addEventListener('scroll', () => requestAnimationFrame(drawConnections));
+document.getElementById('dstScroll').addEventListener('scroll', () => requestAnimationFrame(drawConnections));
+window.addEventListener('resize', () => requestAnimationFrame(drawConnections));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function init() {
+  await reloadFiles();
+  await loadTransformation();
+}
+
+init();
 </script>
 </body>
 </html>

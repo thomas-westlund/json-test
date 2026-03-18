@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "user": {
+      "first_name": "Alice",
+      "last_name": "Andersen",
+      "email": "alice@example.com"
+    },
+    "order": {
+      "total": 120.5,
+      "items": 3,
+      "currency": "USD"
+    },
+    "region": "North",
+    "active": true
+  },
+  {
+    "id": 2,
+    "user": {
+      "first_name": "Bob",
+      "last_name": "Berg",
+      "email": "bob@example.com"
+    },
+    "order": {
+      "total": 89.0,
+      "items": 1,
+      "currency": "EUR"
+    },
+    "region": "South",
+    "active": true
+  },
+  {
+    "id": 3,
+    "user": {
+      "first_name": "Carol",
+      "last_name": "Carlsen",
+      "email": "carol@example.com"
+    },
+    "order": {
+      "total": 340.0,
+      "items": 7,
+      "currency": "USD"
+    },
+    "region": "North",
+    "active": false
+  },
+  {
+    "id": 4,
+    "user": {
+      "first_name": "Dave",
+      "last_name": "Dahl",
+      "email": "dave@example.com"
+    },
+    "order": {
+      "total": 55.0,
+      "items": 2,
+      "currency": "GBP"
+    },
+    "region": "East",
+    "active": true
+  }
+]

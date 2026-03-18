@@ -73,14 +73,12 @@ header {
 
 /* ── MAP PAGE ── */
 #mapPage { flex-direction: column; }
-.map-main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
+.map-main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; gap: 8px; padding: 8px; background: var(--bg); }
 
 .tree-panel {
   display: flex; flex-direction: column; border: 1px solid var(--border);
-  border-top: none; overflow: hidden;
+  border-radius: var(--radius); overflow: hidden;
 }
-.tree-panel:first-child { border-left: none; border-right: none; }
-.tree-panel:last-child  { border-right: none; }
 
 .panel-header {
   padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border);
@@ -121,6 +119,32 @@ header {
 .tree-type.object { color: var(--blue);   border-color: rgba(59,130,246,.3); }
 .tree-more { font-size: 11px; color: var(--muted); font-style: italic; padding: 3px 6px; }
 .src-preview { font-size: 11px; font-family: var(--mono); opacity: .8; margin-left: 6px; white-space: nowrap; flex-shrink: 0; }
+
+/* ── Meta inputs (source origin column) ── */
+.meta-sys, .meta-field {
+  background: rgba(0,0,0,.3); border: 1px solid var(--border); border-radius: 3px;
+  color: var(--muted); font-family: var(--mono); font-size: 10px;
+  padding: 1px 4px; outline: none; width: 76px; flex-shrink: 0;
+}
+.meta-sys:focus, .meta-field:focus { border-color: var(--accent); color: var(--text); }
+.meta-sys::placeholder, .meta-field::placeholder { opacity: .35; font-style: italic; }
+.meta-divider { width: 1px; background: var(--border); align-self: stretch; margin: 3px 2px; flex-shrink: 0; }
+
+/* ── Unmapped target fields ── */
+.dst-unmapped .tree-key,
+.dst-unmapped .tree-colon,
+.dst-unmapped .tree-val { opacity: .45; }
+.dst-unmapped .port-dot.dst { border-color: rgba(245,158,11,.55) !important; }
+.badge-unmapped {
+  font-size: 9px; color: var(--yellow); background: rgba(245,158,11,.12);
+  border: 1px solid rgba(245,158,11,.25); border-radius: 3px;
+  padding: 0 3px; margin-left: 4px; flex-shrink: 0; letter-spacing: .3px;
+}
+
+/* ── Mapping chip comments ── */
+.chip-note-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; padding: 0 2px; line-height: 1; opacity: .5; }
+.chip-note-btn:hover, .chip-note-btn.active { opacity: 1; color: var(--yellow); }
+.chip-comment { font-size: 10px; color: var(--muted); font-style: italic; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Port dots ── */
 .port-dot {
@@ -235,7 +259,9 @@ header {
     <div class="sep"></div>
     <button class="btn btn-ghost" onclick="loadTransformation()">📂 Load Mapping</button>
     <button class="btn btn-green" onclick="saveTransformation()">💾 Save Mapping</button>
-    <button class="btn btn-yellow" onclick="exportDrawio()">📊 Export Diagram</button>
+    <div class="sep"></div>
+    <button class="btn btn-yellow" onclick="exportDrawio()">📊 Diagram</button>
+    <button class="btn btn-yellow" onclick="exportSample()">📤 Sample JSON</button>
     <button class="btn btn-ghost" onclick="clearMappings()">✕ Clear</button>
   </div>
 
@@ -260,7 +286,10 @@ header {
     <div class="tree-panel">
       <div class="panel-header">
         <span class="panel-title"><span class="panel-dot" style="background:var(--accent)"></span>source.json</span>
-        <span id="srcInfo" style="font-size:11px;color:var(--muted)"></span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="srcInfo" style="font-size:11px;color:var(--muted)"></span>
+          <button class="btn btn-ghost" id="metaToggleBtn" style="padding:2px 8px;font-size:11px" onclick="toggleMeta()" title="Show/hide source origin metadata column">📋 Origin</button>
+        </div>
       </div>
       <div class="tree-scroll" id="srcScroll">
         <div id="srcTree"><div class="empty-msg">Loading source.json…</div></div>
@@ -347,11 +376,7 @@ header {
 
 <!-- ══ SVG CONNECTION OVERLAY ══════════════════════════════════════════════ -->
 <svg id="svgOverlay" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <marker id="arrowEnd" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="currentColor" />
-    </marker>
-  </defs>
+  <defs id="svgDefs"></defs>
   <path id="tempLine" d="" style="display:none"/>
 </svg>
 
@@ -368,13 +393,15 @@ header {
 
 let sourceData = null;
 let targetData = null;
-let mappings = [];          // [{id, src, dst, color}]
+let mappings = [];          // [{id, src, dst, color, comment}]
 let expandedSrc = new Set();
 let expandedDst = new Set();
 let dragState = null;
 let allSrcPaths = [];       // flat list of all paths in source tree
 let allDstPaths = [];       // flat list of all paths in target tree
 let steps = [];             // pipeline steps
+let fieldMeta = {};         // { 'srcPath': { sourceSystem, sourceField } }
+let showMeta = false;
 
 const COLORS = ['#6c63ff','#00d4aa','#ff6584','#f59e0b','#3b82f6','#ec4899','#10b981','#f97316','#8b5cf6','#06b6d4'];
 let colorCursor = 0;
@@ -511,10 +538,10 @@ function appendNode(val, path, side, parent, depth) {
     valEl.title = display;
     row.appendChild(valEl);
 
-    // For target fields: show example value pulled from source via active mapping
     if (side === 'dst') {
       const m = mappings.find(m => m.dst === path);
       if (m && sourceData != null) {
+        // Show example value from mapped source field
         const srcVal = getValueAtPath(sourceData, m.src);
         if (srcVal !== undefined && srcVal !== null) {
           const preview = document.createElement('span');
@@ -525,7 +552,50 @@ function appendNode(val, path, side, parent, depth) {
           preview.title = 'Example value from: ' + m.src;
           row.appendChild(preview);
         }
+      } else {
+        // No mapping — mark as unmapped
+        row.classList.add('dst-unmapped');
+        const badge = document.createElement('span');
+        badge.className = 'badge-unmapped';
+        badge.textContent = '○ no source';
+        badge.title = 'No source field mapped to this field';
+        row.appendChild(badge);
       }
+    }
+
+    // For source leaf nodes in meta mode: insert editable origin fields at row start
+    if (side === 'src' && showMeta) {
+      const meta = fieldMeta[path] || {};
+
+      const divider = document.createElement('div');
+      divider.className = 'meta-divider';
+
+      const fldInput = document.createElement('input');
+      fldInput.className = 'meta-field';
+      fldInput.placeholder = 'Orig. field';
+      fldInput.value = meta.sourceField || '';
+      fldInput.title = 'Original fieldname in source system';
+      fldInput.addEventListener('input', () => {
+        fieldMeta[path] = fieldMeta[path] || {};
+        fieldMeta[path].sourceField = fldInput.value;
+      });
+      fldInput.addEventListener('mousedown', e => e.stopPropagation());
+
+      const sysInput = document.createElement('input');
+      sysInput.className = 'meta-sys';
+      sysInput.placeholder = 'System';
+      sysInput.value = meta.sourceSystem || '';
+      sysInput.title = 'Source system name (e.g. SAP, CRM)';
+      sysInput.addEventListener('input', () => {
+        fieldMeta[path] = fieldMeta[path] || {};
+        fieldMeta[path].sourceSystem = sysInput.value;
+      });
+      sysInput.addEventListener('mousedown', e => e.stopPropagation());
+
+      // Insert at the very start: sys | field | divider | ...rest
+      row.insertBefore(divider, row.firstChild);
+      row.insertBefore(fldInput, row.firstChild);
+      row.insertBefore(sysInput, row.firstChild);
     }
   }
 
@@ -617,9 +687,11 @@ function makeBezier(x1, y1, x2, y2) {
   return `M ${x1} ${y1} C ${cx} ${y1} ${cx} ${y2} ${x2} ${y2}`;
 }
 
+const svgDefs = document.getElementById('svgDefs');
+
 function drawConnections() {
-  // Remove old connection elements
   svg.querySelectorAll('.conn-group').forEach(el => el.remove());
+  svgDefs.querySelectorAll('.conn-marker').forEach(el => el.remove());
 
   for (const m of mappings) {
     const srcDot = dotEl('src', m.src);
@@ -628,21 +700,38 @@ function drawConnections() {
     const p2 = dotCenter(dstDot);
     if (!p1 || !p2) continue;
 
+    // Colored arrowhead marker unique to this mapping
+    const markerId = 'arrow-' + m.id;
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.id = markerId;
+    marker.setAttribute('markerWidth', '9');
+    marker.setAttribute('markerHeight', '9');
+    marker.setAttribute('refX', '8');
+    marker.setAttribute('refY', '3');
+    marker.setAttribute('orient', 'auto');
+    marker.classList.add('conn-marker');
+    const ap = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    ap.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+    ap.setAttribute('fill', m.color);
+    marker.appendChild(ap);
+    svgDefs.appendChild(marker);
+
+    const d = makeBezier(p1.x, p1.y, p2.x, p2.y);
+
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.className = 'conn-group';
     g.dataset.id = m.id;
 
-    const d = makeBezier(p1.x, p1.y, p2.x, p2.y);
-
-    // Visible line
+    // Visible bezier line with arrowhead
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     line.setAttribute('d', d);
     line.setAttribute('stroke', m.color);
     line.setAttribute('fill', 'none');
     line.setAttribute('stroke-width', '2');
     line.setAttribute('opacity', '0.85');
+    line.setAttribute('marker-end', `url(#${markerId})`);
 
-    // Transparent hit area for click-to-delete
+    // Wide transparent hit area — click to delete
     const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     hit.setAttribute('d', d);
     hit.setAttribute('stroke', 'transparent');
@@ -650,7 +739,7 @@ function drawConnections() {
     hit.setAttribute('stroke-width', '12');
     hit.style.cursor = 'pointer';
     hit.style.pointerEvents = 'stroke';
-    hit.addEventListener('click', () => { removeMapping(m.id); });
+    hit.addEventListener('click', () => removeMapping(m.id));
 
     g.appendChild(line);
     g.appendChild(hit);
@@ -659,10 +748,6 @@ function drawConnections() {
 
   updateDotColors();
 }
-
-// Allow pointer events on connection hit areas but not the SVG background
-svg.style.pointerEvents = 'none';
-// Individual groups get pointer events via their hit elements
 
 function updateDotColors() {
   const mappedSrc = new Map(mappings.map(m => [m.src, m.color]));
@@ -759,19 +844,80 @@ function clearMappings() {
   setStatus('Mappings cleared');
 }
 
+// ─── Meta mode toggle ────────────────────────────────────────────────────────
+function toggleMeta() {
+  showMeta = !showMeta;
+  document.getElementById('metaToggleBtn').style.background = showMeta ? 'var(--accent)' : '';
+  document.getElementById('metaToggleBtn').style.color = showMeta ? '#fff' : '';
+  renderTree(sourceData, 'src');
+  requestAnimationFrame(drawConnections);
+}
+
+// ─── Mapping comment editing ─────────────────────────────────────────────────
+function editMappingComment(id) {
+  const m = mappings.find(m => m.id === id);
+  if (!m) return;
+  const current = m.comment || '';
+  const note = prompt(`Comment for mapping:\n${m.src}  →  ${m.dst}`, current);
+  if (note !== null) {
+    m.comment = note;
+    renderMappingBar();
+  }
+}
+
+// ─── Export sample destination JSON ──────────────────────────────────────────
+function exportSample() {
+  if (!targetData) return setStatus('No target loaded', 'err');
+
+  function fill(obj, basePath) {
+    if (obj === null || typeof obj !== 'object') {
+      // Leaf: replace with mapped source value if available
+      const m = mappings.find(m => m.dst === basePath);
+      if (m && sourceData != null) {
+        const v = getValueAtPath(sourceData, m.src);
+        return v !== undefined ? v : obj;
+      }
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map((item, i) => fill(item, basePath ? `${basePath}[${i}]` : `[${i}]`));
+    }
+    const result = {};
+    for (const [k, v] of Object.entries(obj)) {
+      result[k] = fill(v, basePath ? `${basePath}.${k}` : k);
+    }
+    return result;
+  }
+
+  const sample = fill(targetData, '');
+  const blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sample-destination.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  setStatus('sample-destination.json exported', 'ok');
+}
+
 function renderMappingBar() {
   const bar = document.getElementById('mappingBar');
   if (mappings.length === 0) {
     bar.innerHTML = '<span class="mapping-empty">Drag from a source field (right dot ●) to a target field (left dot ●) to create a mapping.</span>';
     return;
   }
-  bar.innerHTML = mappings.map(m => `
+  bar.innerHTML = mappings.map(m => {
+    const hasNote = m.comment?.trim();
+    return `
     <span class="mapping-chip" style="border-color:${m.color}44">
       <span class="src-path" style="color:${m.color}">${esc(m.src)}</span>
       <span class="arrow">→</span>
       <span class="dst-path" style="color:${m.color}">${esc(m.dst)}</span>
+      ${hasNote ? `<span class="chip-comment" title="${esc(m.comment)}">💬 ${esc(m.comment)}</span>` : ''}
+      <button class="chip-note-btn ${hasNote ? 'active' : ''}" onclick="editMappingComment('${m.id}')"
+        title="${hasNote ? 'Edit: ' + esc(m.comment) : 'Add comment'}">✏</button>
       <button class="del-btn" onclick="removeMapping('${m.id}')" title="Remove">✕</button>
-    </span>`).join('');
+    </span>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -871,10 +1017,13 @@ async function loadTransformation() {
     const data = await res.json();
     mappings = (data.mappings || []).map(m => ({ ...m, color: m.color || nextColor() }));
     steps = data.steps || [];
+    fieldMeta = data.fieldMeta || {};
     colorCursor = mappings.length;
     renderMappingBar();
     renderSteps();
-    drawConnections();
+    renderTree(sourceData, 'src');  // refresh to show loaded field meta
+    renderTree(targetData, 'dst');
+    requestAnimationFrame(drawConnections);
     setStatus(`Loaded ${mappings.length} mappings, ${steps.length} steps`, 'ok');
   } catch(e) {
     setStatus('Load error: ' + e.message, 'err');
@@ -883,7 +1032,11 @@ async function loadTransformation() {
 
 async function saveTransformation() {
   try {
-    const body = { mappings: mappings.map(({id,src,dst,color}) => ({id,src,dst,color})), steps };
+    const body = {
+      mappings: mappings.map(({ id, src, dst, color, comment }) => ({ id, src, dst, color, comment })),
+      steps,
+      fieldMeta,
+    };
     const res = await fetch('/api/transformation', {
       method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
     });

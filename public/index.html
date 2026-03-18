@@ -298,6 +298,8 @@ header {
     <button class="btn btn-yellow" onclick="exportDrawio()">📊 Diagram</button>
     <button class="btn btn-yellow" onclick="exportSample()">📤 Sample JSON</button>
     <button class="btn btn-ghost" onclick="clearMappings()">✕ Clear</button>
+    <div class="sep"></div>
+    <button class="btn btn-ghost" id="arrowToggleBtn" onclick="toggleArrows()" title="Show/hide connection arrows">⇌ Arrows</button>
   </div>
 
   <div id="transformControls" style="display:none;align-items:center;gap:6px">
@@ -804,6 +806,15 @@ function removeOriginMapping(id) {
 const svg     = document.getElementById('svgOverlay');
 const svgDefs = document.getElementById('svgDefs');
 const tempLine = document.getElementById('tempLine');
+
+let arrowsVisible = true;
+function toggleArrows() {
+  arrowsVisible = !arrowsVisible;
+  svg.style.opacity = arrowsVisible ? '' : '0';
+  svg.style.pointerEvents = arrowsVisible ? '' : 'none';
+  const btn = document.getElementById('arrowToggleBtn');
+  btn.style.opacity = arrowsVisible ? '' : '0.45';
+}
 const DOT_R = 6;  // offset from dot center to edge
 
 function dotEl(side, id) {

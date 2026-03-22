@@ -8,19 +8,19 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Slightly lightened dark theme */
-  --bg:       #161923;
-  --surface:  #1e2235;
-  --surface2: #272b45;
-  --border:   #363a5a;
-  --accent:   #7c74ff;
-  --green:    #10dbb4;
-  --red:      #ff7096;
-  --yellow:   #faa831;
-  --blue:     #4d9fff;
-  --pink:     #f472b6;
-  --text:     #e8edf5;
-  --muted:    #959db5;
+  /* Lighter dark theme */
+  --bg:       #1e2332;
+  --surface:  #272d42;
+  --surface2: #313757;
+  --border:   #48507a;
+  --accent:   #9b95ff;
+  --green:    #2de8c4;
+  --red:      #ff8aaa;
+  --yellow:   #fbb84a;
+  --blue:     #6cb4ff;
+  --pink:     #f78ed4;
+  --text:     #edf2fa;
+  --muted:    #a8b2cc;
   --radius:   9px;
   --font:     'Segoe UI', system-ui, sans-serif;
   --mono:     'Cascadia Code', 'Fira Code', Consolas, monospace;
@@ -211,11 +211,20 @@ header {
 .port-dot.connected { border-width: 2px; }
 
 /* ── Mapping bar ── */
-.mapping-bar {
-  background: var(--surface); border-top: 1px solid var(--border);
-  padding: 6px 12px; display: flex; align-items: center; gap: 8px;
-  flex-wrap: wrap; min-height: 40px; flex-shrink: 0;
+.mapping-bar { background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
+.mapping-bar-header {
+  padding: 5px 12px; display: flex; align-items: center; gap: 8px;
+  cursor: pointer; user-select: none; min-height: 32px;
 }
+.mapping-bar-header:hover { background: var(--surface2); }
+.mapping-bar-toggle { font-size: 10px; color: var(--muted); transition: transform .15s; }
+.mapping-bar-toggle.open { transform: rotate(90deg); }
+.mapping-bar-body {
+  display: none; padding: 6px 12px 8px; gap: 8px;
+  flex-wrap: wrap; align-items: center;
+  max-height: 220px; overflow-y: auto;
+}
+.mapping-bar-body.open { display: flex; }
 .mapping-chip {
   display: inline-flex; align-items: center; gap: 5px;
   background: var(--surface2); border: 1px solid var(--border);
@@ -387,7 +396,14 @@ header {
 
   <!-- Mapping bar -->
   <div class="mapping-bar" id="mappingBar">
-    <span class="mapping-empty">Drag from source right dot (●) to target left dot (●), or from origin (●) to source left dot (●).</span>
+    <div class="mapping-bar-header" onclick="toggleMappingBar()">
+      <span class="mapping-bar-toggle" id="mappingBarToggle">▶</span>
+      <span style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)">Mappings</span>
+      <span id="mappingBarCount" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+    <div class="mapping-bar-body" id="mappingBarBody">
+      <span class="mapping-empty">Drag from source right dot (●) to target left dot (●), or from origin (●) to source left dot (●).</span>
+    </div>
   </div>
 </div>
 
@@ -1106,13 +1122,24 @@ function exportSample() {
 }
 
 // ── Mapping bar ───────────────────────────────────────────────────────────
+let mappingBarOpen = false;
+
+function toggleMappingBar() {
+  mappingBarOpen = !mappingBarOpen;
+  document.getElementById('mappingBarToggle').classList.toggle('open', mappingBarOpen);
+  document.getElementById('mappingBarBody').classList.toggle('open', mappingBarOpen);
+}
+
 function renderMappingBar() {
-  const bar = document.getElementById('mappingBar');
+  const body  = document.getElementById('mappingBarBody');
+  const count = document.getElementById('mappingBarCount');
   if (mappings.length === 0) {
-    bar.innerHTML = '<span class="mapping-empty">Drag from source right dot (●) to target left dot (●) to create a mapping.</span>';
+    body.innerHTML = '<span class="mapping-empty">Drag from source right dot (●) to target left dot (●) to create a mapping.</span>';
+    count.textContent = '';
     return;
   }
-  bar.innerHTML = mappings.map(m => {
+  count.textContent = `(${mappings.length})`;
+  body.innerHTML = mappings.map(m => {
     const hasNote = m.comment?.trim();
     return `<span class="mapping-chip" style="border-color:${m.color}44">
       <span class="src-path" style="color:${m.color}">${esc(m.src)}</span>

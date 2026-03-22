@@ -178,6 +178,7 @@ header {
 }
 .btn-req:hover { border-color: var(--red); color: var(--red); }
 .btn-req.is-required { background: rgba(255,112,150,.15); border-color: var(--red); color: var(--red); }
+.btn-req-filter-active { background: rgba(255,112,150,.18) !important; border-color: var(--red) !important; color: var(--red) !important; }
 
 /* Meta origin inputs (toggled) */
 .meta-sys, .meta-field {
@@ -380,6 +381,7 @@ header {
         <span class="panel-title"><span class="panel-dot" style="background:var(--green)"></span>target.json</span>
         <div style="display:flex;align-items:center;gap:6px">
           <span id="dstInfo" style="font-size:11px;color:var(--muted)"></span>
+          <button class="btn btn-ghost" id="reqFilterBtn" style="padding:2px 8px;font-size:11px" onclick="toggleRequiredFilter()" title="Show required fields only">★ Required</button>
           <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('dst',true)"  title="Expand all">⊞</button>
           <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="expandCollapseAll('dst',false)" title="Collapse all">⊟</button>
         </div>
@@ -492,6 +494,7 @@ let steps = [];
 let fieldMeta = {};           // {srcPath: {sourceSystem, sourceField}}
 let showMeta = false;
 let requiredFields = new Set();  // set of dst paths marked as required
+let showRequiredOnly = false;
 let srcSearchQuery = '', dstSearchQuery = '';
 
 const COLORS = ['#7c74ff','#10dbb4','#ff7096','#faa831','#4d9fff','#f472b6','#22d3ee','#fb923c','#a78bfa','#34d399'];
@@ -600,8 +603,12 @@ function appendNode(val, path, side, parent, depth) {
   // ── Search filter: hide nodes with no matching descendants ───────────────
   if (q && path !== '' && !nodeHasMatch(val, path, q)) return;
 
-  // When searching, force-expand containers that have matches inside
+  // ── Required-only filter (dst only) ──────────────────────────────────────
+  if (side === 'dst' && showRequiredOnly && path !== '' && !nodeHasRequired(val, path)) return;
+
+  // When searching or filtering, force-expand containers that have matches inside
   if (q && isCollapsible) expandSet.add(path);
+  if (side === 'dst' && showRequiredOnly && isCollapsible) expandSet.add(path);
   const isExpanded  = expandSet.has(path);
 
   const node = document.createElement('div');
@@ -1090,6 +1097,22 @@ function toggleRequired(path) {
   else requiredFields.add(path);
   renderTree(targetData, 'dst');
   requestAnimationFrame(drawConnections);
+}
+
+function toggleRequiredFilter() {
+  showRequiredOnly = !showRequiredOnly;
+  document.getElementById('reqFilterBtn').classList.toggle('btn-req-filter-active', showRequiredOnly);
+  renderTree(targetData, 'dst');
+  requestAnimationFrame(drawConnections);
+}
+
+// Returns true if path is required OR any descendant path is required
+function nodeHasRequired(val, path) {
+  if (requiredFields.has(path)) return true;
+  const t = getType(val);
+  if (t === 'object') return Object.entries(val).some(([k, v]) => nodeHasRequired(v, path ? `${path}.${k}` : k));
+  if (t === 'array')  return val.some((v, i) => nodeHasRequired(v, path ? `${path}[${i}]` : `[${i}]`));
+  return false;
 }
 
 // ── Mapping comment ───────────────────────────────────────────────────────
